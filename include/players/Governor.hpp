@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Player.hpp"
 
+namespace coup{
 class Governor : public Player {
 	private:
 	public:
@@ -63,3 +64,4 @@ class Governor : public Player {
 			//TODO
 		 }
 };
+}

@@ -3,6 +3,7 @@
 #include "Player.hpp"
 
 // if attacked by 'sanction', recieve 1 coin; TODO
+namespace coup{
 class Baron : public Player {
 	private:
 	public:
@@ -65,3 +66,4 @@ class Baron : public Player {
 		}
 
 };
+}

@@ -3,6 +3,7 @@
 #include "Player.hpp"
 
 // if attacked by 'sanction', player who played sanction pays extra 1 coin to treasury
+namespace coup{
 class Judge : public Player {
 	private:
 	public:
@@ -66,3 +67,4 @@ class Judge : public Player {
 		}
 
 };
+}

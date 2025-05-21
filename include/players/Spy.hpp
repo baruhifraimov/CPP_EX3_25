@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Player.hpp"
 
+namespace coup{
 class Spy : public Player {
 	private:
 	public:
@@ -74,3 +75,4 @@ class Spy : public Player {
 		 }
 
 };
+}

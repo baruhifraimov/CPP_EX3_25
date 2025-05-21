@@ -5,6 +5,7 @@
 #include <iostream>
 #include "game.hpp"
 
+namespace coup{
 class Player{
 	private:
 		std::string player_name;
@@ -92,3 +93,4 @@ class Player{
 
 		
 };
+}

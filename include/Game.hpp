@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 
+namespace coup{
 class Game {
 	private:
 
@@ -17,7 +18,7 @@ class Game {
 		 * 
 		 * @return vector<string> Players name
 		 */
-		vector<string> players(){};
+		std::vector<std::string> players(){};
 
 		/**
 		 * @brief Returns the name of the winner
@@ -27,3 +28,4 @@ class Game {
 		std::string winner(){};
 
 };
+}

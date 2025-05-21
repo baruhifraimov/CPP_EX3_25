@@ -3,6 +3,7 @@
 #include "Player.hpp"
 
 // if attacked by 'arrest', recieve 1 coin; TODO
+namespace coup{
 class General : public Player {
 	private:
 	public:
@@ -67,3 +68,4 @@ class General : public Player {
 		}
 
 };
+}
