@@ -5,7 +5,11 @@
 namespace coup{
 class Governor : public Player {
 	private:
+
 	public:
+
+		Governor(Game& game, const std::string& name) : Player(game, name) {}
+
 
 		/** @brief Player takes 1 coin from treasury
 			* COST: 0
@@ -52,16 +56,16 @@ class Governor : public Player {
 			* COST: 7
 			* can be disabled by: certain conditions
 		*/		
-		 void coup(Player& p) override{
+		 void coup(Player& p) override {
 
 		 }
 
-		 /** * @brief disables tax action from oher players
+		 /** * @brief Can *ONLY* disable tax action from oher players
 		  * 
-		  * 
+		  * @param o The other player we want to disable his tax action
 		  */
-		 void disalbe_tax(Player p){
-			//TODO
+		 void undo(Player& o) override {
+			
 		 }
 };
 }
