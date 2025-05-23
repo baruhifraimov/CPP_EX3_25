@@ -8,7 +8,7 @@ class Judge : public Player {
 	private:
 
 	public:
-
+		// Constructor
 		Judge(Game& game, const std::string& name) : Player(game, name) {}
 
 

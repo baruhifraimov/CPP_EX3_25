@@ -8,7 +8,7 @@ class General : public Player {
 	private:
 	
 	public:
-	
+		// Constructor
 		General(Game& game, const std::string& name) : Player(game, name) {}
 
 		/** @brief Player takes 1 coin from treasury

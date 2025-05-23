@@ -7,7 +7,7 @@ class Governor : public Player {
 	private:
 
 	public:
-
+		// Constructor
 		Governor(Game& game, const std::string& name) : Player(game, name) {}
 
 

@@ -8,10 +8,8 @@ class Baron : public Player {
 	private:
 	
 	public:
-
-		Baron(Game& game, const std::string& name) : Player(game, name) {
-
-		}
+		// Constructor
+		Baron(Game& game, const std::string& name) : Player(game, name) {}
 
 		/** @brief Player takes 1 coin from treasury
 			* COST: 0

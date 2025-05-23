@@ -7,6 +7,7 @@ class Spy : public Player {
 	private:
 
 	public:
+		// Constructor
 		Spy(Game& game, const std::string& name) : Player(game, name) {}
 
 		/** @brief Player takes 1 coin from treasury

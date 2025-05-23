@@ -3,25 +3,27 @@
 #include <iostream>
 #include <vector>
 #include <string>
-
+#include "Player.hpp"
 namespace coup{
 class Game {
 	private:
-		static Game* instance;
-		std::vector<std::string> arr_players;
+		std::vector<Player*> player_objects; // (might delete later)
+		std::vector<std::string> player_names;
 		int cur_round,index;
-		int treasury;
+		int treasury; // coins bank
 	public:
 
 		// Constructor
-		Game() : arr_players(),
+		Game() : player_names(),
+				 player_objects(),
 				 cur_round(0),
 				 index(0),
-				 treasury(6) {
+				 treasury(6) // default 6 coins (cause 6 players max)
+				 {
 			
 		}
 		// Copy constructor
-		Game(Game &o) : arr_players(o.arr_players), cur_round(o.cur_round){
+		Game(Game &o) : player_names(o.player_names), cur_round(o.cur_round){
 
 		}
 		// Destructor
@@ -37,7 +39,7 @@ class Game {
 			
 			// Copy data
 			this->cur_round = o.cur_round;
-			this->arr_players = o.arr_players;
+			this->player_names = o.player_names;
 			
 			return *this;
 
@@ -62,6 +64,13 @@ class Game {
 		 * @return std::string Name of the winner 
 		 */
 		std::string winner();
+
+		/**
+		 * @brief Register player object with the game
+		 * 
+		 * @param player 
+		 */
+		void registerPlayer(Player* player);
 
 		/**
 		 * @brief Adds player name to the current game

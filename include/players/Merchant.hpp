@@ -9,7 +9,7 @@ class Merchant : public Player {
 	private:
 
 	public:
-
+		// Constructor
 		Merchant(Game& game, const std::string& name) : Player(game, name) {}
 
 

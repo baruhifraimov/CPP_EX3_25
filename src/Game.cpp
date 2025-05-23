@@ -6,42 +6,55 @@ using namespace coup;
 
 std::string Game::turn() {
     // Check for empty player list
-    if (this->arr_players.empty()) {
+    if (this->player_names.empty()) {
         throw std::runtime_error("No players in the game");
     }
     
     // Calculate current player index
-    size_t current_index = this->index % this->arr_players.size();
+    size_t current_index = this->index % this->player_names.size();
     
-    return arr_players.at(current_index);
+    return player_names.at(current_index);
 }
 
 std::vector<std::string> Game::players(){
-	return this->arr_players;
+	return this->player_names;
 }
 
 std::string Game::winner(){
-	if(this->arr_players.size()!=1){
+	if(this->player_names.size()!=1){
 		throw std::runtime_error( "Game is still runing" );
 	}
 	else{
-		return this->arr_players[0];
+		return this->player_names[0];
 	}
 }
 
+void Game::registerPlayer(Player* player) {
+	// Only add if not already present
+	for (Player* p : player_objects) {
+		if (p == player) {
+			return;  // Already registered
+		}
+	}
+	this->addPlayer(player->getName());
+	player_objects.emplace_back(player);
+}
+
 void Game::addPlayer(std::string name){
-	this->arr_players.push_back(name);
+	this->player_names.push_back(name);
 }
 
 void Game::removePlayer(std::string name){
-	for (size_t i = 0; i < this->arr_players.size(); i++)
+	for (size_t i = 0; i < this->player_names.size(); i++)
 	{	
 		// deletes the payer(name) from the players list (0 if true)
-		if(!this->arr_players.at(i).compare(name)){
+		if(!this->player_names.at(i).compare(name)){
 			if(i <= this->index){
 				this->index--;
 			}
-			this->arr_players.erase(begin(arr_players)+i);
+			this->player_names.erase(begin(player_names)+i);
+			player_objects.at(i)->setActive(false);
+			this->player_objects.erase(begin(player_objects)+i);
 			return;
 		}
 	}
@@ -63,4 +76,14 @@ void Game::add_coins(int n){
 
 void Game::next_turn(){
 	this->cur_round+=1;
+	this->index+=1;
+
+	for (int i = 0; i < player_objects.size(); i++)
+	{
+		if(player_objects.at(i)->getName() == this->turn()) {
+			player_objects[i]->update_block_timers();
+		}
+	}
+	
+	
 }
