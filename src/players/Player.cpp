@@ -3,98 +3,167 @@
 
 using namespace coup;
 		
+		void Player::setRole(Role r) {
+            this->player_role = r;
+		}
+
+		Role Player::getRole() {
+            return this->player_role;
+		}
+
 		 void Player::gather() {
 			this->isMyTurn(); // Check if its my turn
-			if(is_operation_blocked(Operation::GATHER)){
-				throw std::runtime_error("Player is under sanction, illegal move");
-			}
-			this->current_game.take_coins(1);
-			this->num_coins+=1;
-			if (is_operation_blocked(Operation::EXTRA_TURN))
-			{
-				unblock_operation(Operation::EXTRA_TURN);
+			if(!Over10Coins()){
+				if(is_operation_blocked(Operation::GATHER)){
+					throw std::runtime_error("Player is under sanction, illegal move");
+				}
+				this->current_game.take_coins(1);
+				this->num_coins+=1;
+				if (is_operation_blocked(Operation::EXTRA_TURN))
+				{
+					unblock_operation(Operation::EXTRA_TURN);
+				}
+				else{
+					this->current_game.next_turn(); // next round
+				}
 			}
 			else{
-				this->current_game.next_turn(); // next round
+				throw std::runtime_error("Gather is disabled, got over or equal to 10 coins, illegal move");
 			}
 		 }
 
 		 void Player::tax() {
 			this->isMyTurn(); // Check if its my turn
-			if(is_operation_blocked(Operation::TAX)){
-				throw std::runtime_error("Player is under sanction, illegal move");
-			}
-			this->current_game.take_coins(2);
-			this->num_coins+=2;
-			if (is_operation_blocked(Operation::EXTRA_TURN))
-			{
-				unblock_operation(Operation::EXTRA_TURN);
-			}
+			if(!Over10Coins()){
+				if(is_operation_blocked(Operation::TAX)){
+					throw std::runtime_error("Player is under sanction, illegal move");
+				}
+				this->current_game.take_coins(2);
+				this->num_coins+=2;
+				if (is_operation_blocked(Operation::EXTRA_TURN))
+				{
+					unblock_operation(Operation::EXTRA_TURN);
+				}
+				else{
+					this->current_game.next_turn(); // next round
+					}
+				}
 			else{
-				this->current_game.next_turn(); // next round
+				throw std::runtime_error("Tax is disabled, got over or equal to 10 coins, illegal move");
 			}
-		 }
+		}
 
 		 void Player::bribe() {
 			this->isMyTurn(); // Check if its my turn
-			if(is_operation_blocked(Operation::BRIBE)){
-				throw std::runtime_error("Player bribe action is disabled, illegal move");
-			}
-			else{
-				// TODO The bribe allows the player to play another action!
+			if(!Over10Coins()){
+
 				this->remove_coins(4);
 				this->current_game.add_coins(4);
-				this->blocked_operations |= Operation::EXTRA_TURN;
+
+				
+				// Check with all the judges if they want to block bribe
+				if(current_game.check_judge_intervention(*this)){
+					// Bribe was blocked by a Judge
+					// Coins already spent, loser
+					if (is_operation_blocked(Operation::EXTRA_TURN)){
+						unblock_operation(Operation::EXTRA_TURN);
+						return;
+					}
+					else{
+						this->current_game.next_turn(); // next round
+						return;
+					}
+				}
+				else{
+					this->blocked_operations |= Operation::EXTRA_TURN;
+				}
+			}
+			else{
+				throw std::runtime_error("Bribe is disabled, got over or equal to 10 coins, illegal move");
 			}
 		 }
 	
-		 void Player::arrest(Player& o) { //REDO THE METHOD, NEED TO CHECK IF THE PLAYER IS ALREADY ARRESTED, CANNOT DO ARREST TWICE RAPIDLY
+		 void Player::arrest(Player& o) { 
 			this->isMyTurn(); // Check if its my turn
-			if(is_operation_blocked(Operation::ARREST)){
-				throw std::runtime_error("Player arrest action is disabled, illegal move");
-			}
-			o.block_operation_with_timer(Operation::ARREST);
-			o.remove_coins(1);
-			this->num_coins +=1;
-			if (is_operation_blocked(Operation::EXTRA_TURN))
-			{
-				unblock_operation(Operation::EXTRA_TURN);
+			if(!Over10Coins()){
+				if(is_operation_blocked(Operation::ARREST)){
+					throw std::runtime_error("Player arrest action is disabled, illegal move");
+				}
+				o.block_operation_with_timer(Operation::ARREST);
+				o.remove_coins(1);
+				this->num_coins +=1;
+				if (is_operation_blocked(Operation::EXTRA_TURN))
+				{
+					unblock_operation(Operation::EXTRA_TURN);
+				}
+				else{
+					this->current_game.next_turn(); // next round
+				}
 			}
 			else{
-				this->current_game.next_turn(); // next round
+				throw std::runtime_error("Arrest is disabled, got over or equal to 10 coins, illegal move");
 			}
 		 }
 	
 		 void Player::sanction(Player& o)  {
 			this->isMyTurn(); // Check if its my turn
-			if(&(*this) == &o){ // check if im trying to sanction my self
-				throw std::runtime_error("Cannot sanction yourself, illegal move");
-			}
-			this->remove_coins(3);
-			block_operation_with_timer(Operation::GATHER);
-			block_operation_with_timer(Operation::TAX);
-			this->current_game.add_coins(3);
-			if (is_operation_blocked(Operation::EXTRA_TURN))
-			{
-				unblock_operation(Operation::EXTRA_TURN);
+			if(!Over10Coins()){
+				if(&(*this) == &o){ // check if im trying to sanction my self
+					throw std::runtime_error("Cannot sanction yourself, illegal move");
+				}
+				this->remove_coins(3);
+				block_operation_with_timer(Operation::GATHER);
+				block_operation_with_timer(Operation::TAX);
+				this->current_game.add_coins(3);
+				if (is_operation_blocked(Operation::EXTRA_TURN))
+				{
+					unblock_operation(Operation::EXTRA_TURN);
+				}
+				else{
+					this->current_game.next_turn(); // next round
+				}
 			}
 			else{
-				this->current_game.next_turn(); // next round
+				throw std::runtime_error("Sanction is disabled, got over or equal to 10 coins, illegal move");
 			}
 		 }
 		
 		 void Player::coup(Player& o) {
 			this->isMyTurn(); // Check if its my turn
-			this->remove_coins(7);
-			current_game.add_coins(7);
-			if(is_operation_blocked(Operation::COUP)){
-				// i dont think we need to throw an error, we need to see how to prevent this
-				// if coup disabled, player still pays coins
-				throw std::runtime_error("Play COUP action is blocked by General, illegal move");
+			if(!Over10Coins()){
+
+				this->remove_coins(7);
+				current_game.add_coins(7);
+
+				// Check with all the generals if they want to undo coup
+				if(current_game.check_general_intervention(*this,o)){
+					// Coup was blocked by a General
+					// Coins already spent, but target is not eliminated
+					if (is_operation_blocked(Operation::EXTRA_TURN)){
+						unblock_operation(Operation::EXTRA_TURN);
+						return;
+					}
+					else{
+						this->current_game.next_turn(); // next round
+						return;
+					}
+				}
+
+				// No General interventio - proceed with coup
+				o.is_active = false; // set player non-active
+				this->current_game.removePlayer(o.player_name);
+
+				if (is_operation_blocked(Operation::EXTRA_TURN))
+				{
+					unblock_operation(Operation::EXTRA_TURN);
+				}
+				else{
+					this->current_game.next_turn(); // next round
+				}
 			}
-			o.is_active = false; // set player non-active
-			this->current_game.removePlayer(o.player_name);
-			current_game.next_turn();
+			else{
+				throw std::runtime_error("Coup is disabled, got over or equal to 10 coins, illegal move");
+			}
 		 }
 
 		void Player::undo(Player& o){
@@ -131,4 +200,8 @@ using namespace coup;
 
 		void Player::setActive(bool t){
 			this->is_active = t;
+		}
+
+		bool Player::Over10Coins(){
+			return this->num_coins>=10;
 		}

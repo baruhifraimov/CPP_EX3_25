@@ -1,2 +1,7 @@
-.vscode/settings.json
-.vscode/c_cpp_properties.json
+.vscode/
+/build/
+/bin/
+/out/
+*.o
+*.obj
+.DS_Store

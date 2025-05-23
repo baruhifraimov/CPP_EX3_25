@@ -1,7 +1,5 @@
 #include <iostream>
 #include "../../include/players/Baron.hpp"
-#include "../../include/players/Player.hpp"
-
 // if attacked by 'sanction', recieve 1 coin; TODO
 using namespace coup;
 		

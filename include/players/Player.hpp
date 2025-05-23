@@ -3,50 +3,11 @@
 // can be up to 6 players, default is 2
 // if player got 10 coins, he needs to use 'coup'
 #include <iostream>
-#include "../Game.hpp"
+#include "Operations.hpp"
+#include "Game.hpp"
+#include "Role.hpp"
 
 namespace coup{
-
-// Defines if the operation is blocked (1) or unblocked (0)
-// Stores each enum value using 1 byte — exactly 8 bits.
-enum class Operation : u_int8_t {
-    NONE     = 0x00,  // 00000000
-    GATHER   = 0x01,  // 00000001
-    TAX      = 0x02,  // 00000010
-    BRIBE    = 0x04,  // 00000100
-    ARREST   = 0x08,  // 00001000
-    SANCTION = 0x10,  // 00010000
-    COUP     = 0x20,  // 00100000
-	EXTRA_TURN = 0x40 // 01000000
-
-};
-
-// inline to declare the operator& same across all files
-// we convert to unsigned int to work with bit operations and reconvert to the enum class
-inline Operation operator&(Operation a, Operation b){
-	return static_cast<Operation>(static_cast<u_int8_t>(a) & static_cast<u_int8_t>(b));
-}
-
-inline Operation operator|(Operation a, Operation b){
-	return static_cast<Operation>(static_cast<u_int8_t>(a) | static_cast<u_int8_t>(b));
-}
-
-inline Operation& operator|=(Operation& a, Operation b){
-	a = a | b;
-	return a;
-}
-
-inline Operation& operator&=(Operation& a, Operation b){
-	a = a & b;
-	return a;
-}
-
-inline Operation operator~(Operation a){
-	return static_cast<Operation>(~static_cast<u_int8_t>(a));
-}
-
-
-
 class Player{
 	protected:
 		std::string player_name;
@@ -54,6 +15,7 @@ class Player{
 		Game &current_game;
 		Operation blocked_operations;
 		bool is_active;
+		Role player_role;
 
 		// Field to track block timers for each operation
 		u_int8_t block_timers[8];  // One timer for each bit in Operation
@@ -89,7 +51,7 @@ class Player{
 
 		/**
 		 * @brief Sets a timer for a blocked operation to understand when to unblock it in the next round
-		 * Initalizes timer with 1 for each new block
+		 * Initializes timer with 1 for each new block
 		 * @param op The operation that we activated the block
 		 */
 		void block_operation_with_timer(Operation op) {
@@ -99,7 +61,7 @@ class Player{
 			for (int i = 0; i < 8; i++) {
 				// Check if this bit is set in op
 				if ((static_cast<u_int8_t>(op) & (1 << i)) != 0 & i != 7) {
-					// Check if ARREST arrtibute in operation is ON, means someone activated arrest this round on this exact player
+					// Check if ARREST attribute in operation is ON, means someone activated arrest this round on this exact player
 					// which results an illegal move
 					if(i == 3 && block_timers[i] == 1){
 						throw std::runtime_error("Player cannot be arrested twice in a lap, illegal move");
@@ -116,7 +78,8 @@ class Player{
 											num_coins(0), 
 											current_game(game),
 											blocked_operations(Operation::NONE),
-											is_active(true) {
+											is_active(true),
+											player_role() {
 
 			// Register player with the current game instance
 			game.registerPlayer(this);
@@ -150,6 +113,20 @@ class Player{
 			return *this;
 
 		}
+
+		/**
+		 * @brief Set the player Role
+		 * 
+		 * @param r Role
+		 */
+        void setRole(Role r);
+
+		/**
+		 * @brief Get the player Role
+		 * 
+		 * @param r Role
+		 */
+        Role getRole();
 
 		/**
 		 * @brief Updates the timers on the blocked operations
@@ -217,7 +194,7 @@ class Player{
 		virtual void coup(Player& o);
 
 		/**
-		 * @brief Retrives the coins of the current player
+		 * @brief Retrieves the coins of the current player
 		 * 
 		 * @return int num of coins
 		 */
@@ -227,7 +204,7 @@ class Player{
 
 		/**
 		 * @brief Undo last Player action
-		 * @note: Only Judge and Gover
+		 * @note: Only Judge and Governor
 		 * COST: 0
 		 * @param o The other player we want to undo the action
 		 */
@@ -256,7 +233,7 @@ class Player{
 		 * @brief Removes from *This* player coins
 		 * 
 		 * @param n The amount of coins to take
-		 * @throw runtime_error: if the player doesnt have the needed money
+		 * @throw runtime_error: if the player doesn't have the needed money
 		 */
 		virtual void remove_coins(int n);
 
@@ -280,5 +257,13 @@ class Player{
 		 * @param t 
 		 */
 		virtual void setActive(bool t);
-};
+
+		/**
+		 * @brief Checks if the player got >=10 coins
+		 * 
+		 * @return returns true if over or equal to 10 else false
+		 */
+		virtual bool Over10Coins();
+
+	};
 }

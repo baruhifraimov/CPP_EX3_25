@@ -4,11 +4,15 @@
 #include <vector>
 #include <string>
 #include "Player.hpp"
+
+#define MIN_PLAYERS 2
+#define MAX_PLAYERS 6
+
 namespace coup{
 class Game {
 	private:
-		std::vector<Player*> player_objects; // (might delete later)
-		std::vector<std::string> player_names;
+		std::vector<Player*> player_objects; 
+		std::vector<std::string> player_names; // (might delete later)
 		int cur_round,index;
 		int treasury; // coins bank
 	public:
@@ -52,7 +56,7 @@ class Game {
 		std::string turn();
 
 		/**
-		 * @brief Retunrs live players name
+		 * @brief Returns live players name
 		 * 
 		 * @return vector<string> Players name
 		 */
@@ -104,5 +108,62 @@ class Game {
 		 */
 		void next_turn();
 
+		/**
+		 * @brief Check with all the existing Judges if they want to disable the current
+		 *  coup request by the attacker, if yes general should pay 5 coins and the attacker loses his
+		 * coins that he paid for the coup action
+		 * 
+		 * @param attacker The one who initiated the attack
+		 * @param target Unlucky one 
+		 * @return true If a prevention initiated by a certain General
+		 * @return false else
+		 */
+		bool check_general_intervention(Player& attacker, Player& target);
+
+		/**
+		 * @brief Check with all the existing Judges if they want to disable the current
+		 *  bribe request by the attacker, if yes Judge doesn't pay a penny, but the attacker
+		 * loses his coins that he spent on the bribe
+		 * 
+		 * @param attacker The one who initiated the attack
+		 * @return true If a prevention initiated by a certain Judge
+		 * @return false else
+		 */
+		bool check_judge_intervention(Player& attacker);
+
+		/**
+		 * @brief Get the generals object
+		 * 
+		 * @return std::vector<Player*> 
+		 */
+		std::vector<Player*> get_generals();
+
+		/**
+		 * @brief Get the judges object
+		 * 
+		 * @return std::vector<Player*> 
+		 */
+		std::vector<Player*> get_judges();
+
+		/**
+		 * @brief Ask the general if he wants to intervene in the attack
+		 * 
+		 * @param general 
+		 * @param attacker 
+		 * @param target 
+		 * @return true 
+		 * @return false 
+		 */
+		bool ask_general_intervention(Player& general, Player& attacker, Player& target);
+
+		/**
+		 * @brief Ask the judge if he wants to intervene in the attack
+		 * 
+		 * @param judge 
+		 * @param attacker 
+		 * @return true 
+		 * @return false 
+		 */
+		bool ask_judge_intervention(Player& judge, Player& attacker);
 };
 }
