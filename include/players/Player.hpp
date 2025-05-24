@@ -9,67 +9,13 @@
 
 namespace coup{
 class Player{
-	protected:
+	private:
 		std::string player_name;
 		int num_coins;
 		Game &current_game;
 		Operation blocked_operations;
 		bool is_active;
 		Role player_role;
-
-		// Field to track block timers for each operation
-		u_int8_t block_timers[8];  // One timer for each bit in Operation
-
-		/**
-		 * @brief Checks if the operation is available to use
-		 * 
-		 * @param op The operator that we want to use
-		 * @return true Is blocked
-		 * @return false Is unblocked
-		 */
-		bool is_operation_blocked(Operation op){
-			return ((blocked_operations & op) == op);
-		}
-
-		/**
-		 * @brief Unblocking operations by unmasking them
-		 * 
-		 * @param op The operation that you want to unblock
-		 */
-		void unblock_operation(Operation op) {
-			blocked_operations = blocked_operations & ~op;
-		}
-
-		/**
-		 * @brief Unblocking operations by unmasking them
-		 * 
-		 * @param op The operation that you want to unblock now with integers
-		 */
-		void unblock_operation(u_int8_t op) {
-			blocked_operations = blocked_operations & ~static_cast<Operation>(op);
-		}
-
-		/**
-		 * @brief Sets a timer for a blocked operation to understand when to unblock it in the next round
-		 * Initializes timer with 1 for each new block
-		 * @param op The operation that we activated the block
-		 */
-		void block_operation_with_timer(Operation op) {
-			blocked_operations |= op;
-			
-			// Initialize timer for each bit that's set
-			for (int i = 0; i < 8; i++) {
-				// Check if this bit is set in op
-				if ((static_cast<u_int8_t>(op) & (1 << i)) != 0 & i != 7) {
-					// Check if ARREST attribute in operation is ON, means someone activated arrest this round on this exact player
-					// which results an illegal move
-					if(i == 3 && block_timers[i] == 1){
-						throw std::runtime_error("Player cannot be arrested twice in a lap, illegal move");
-					}
-					block_timers[i] = 1;  // Start timer at 1
-				}
-			}
-		}	
 
 	public:
 		// Constructor
@@ -115,11 +61,32 @@ class Player{
 		}
 
 		/**
+		 * @brief Set the Game object to the player
+		 * 
+		 * @param game Game object
+		 */
+		void setGame(Game& game);
+
+		/**
+		 * @brief Get the player Active field
+		 * 
+		 * @return true If the player still playing
+		 * @return false Else
+		 */
+		bool getActive();
+
+		/**
+		 * @brief Set player name
+		 * @param name New player name
+		 */
+		void setName(const std::string& name);
+
+		/**
 		 * @brief Set the player Role
 		 * 
 		 * @param r Role
 		 */
-        void setRole(Role r);
+        void setRole(Role& r);
 
 		/**
 		 * @brief Get the player Role
@@ -230,12 +197,13 @@ class Player{
 		virtual bool validate_active();
 
 		/**
-		 * @brief Removes from *This* player coins
+		 * @brief Adds from *This* player coins
 		 * 
-		 * @param n The amount of coins to take
-		 * @throw runtime_error: if the player doesn't have the needed money
+		 * @param n The amount of coins (can be negative)
+		 * @throw runtime_error: if the player doesn't have the needed money (on negative val)
 		 */
-		virtual void remove_coins(int n);
+		virtual void addCoins(int n);
+
 
 		/**
 		 * @brief Checks if the players turn
@@ -252,7 +220,7 @@ class Player{
 		virtual std::string getName();
 
 		/**
-		 * @brief Sets Active arrtibute of the object
+		 * @brief Sets Active attribute of the object
 		 * 
 		 * @param t 
 		 */
@@ -263,7 +231,63 @@ class Player{
 		 * 
 		 * @return returns true if over or equal to 10 else false
 		 */
-		virtual bool Over10Coins();
+		virtual bool IsOver10Coins();
+
+	// Protected methods, hidden from the public
+	protected:
+		// Field to track block timers for each operation
+		u_int8_t block_timers[8];  // One timer for each bit in Operation
+
+		/**
+		 * @brief Checks if the operation is available to use
+		 * 
+		 * @param op The operator that we want to use
+		 * @return true Is blocked
+		 * @return false Is unblocked
+		 */
+		bool is_operation_blocked(Operation op){
+			return ((blocked_operations & op) == op);
+		}
+
+		/**
+		 * @brief Unblocking operations by unmasking them
+		 * 
+		 * @param op The operation that you want to unblock
+		 */
+		void unblock_operation(Operation op) {
+			blocked_operations = blocked_operations & ~op;
+		}
+
+		/**
+		 * @brief Unblocking operations by unmasking them
+		 * 
+		 * @param op The operation that you want to unblock now with integers
+		 */
+		void unblock_operation(u_int8_t op) {
+			blocked_operations = blocked_operations & ~static_cast<Operation>(op);
+		}
+
+		/**
+		 * @brief Sets a timer for a blocked operation to understand when to unblock it in the next round
+		 * Initializes timer with 1 for each new block
+		 * @param op The operation that we activated the block
+		 */
+		void block_operation_with_timer(Operation op) {
+			blocked_operations |= op;
+			
+			// Initialize timer for each bit that's set
+			for (int i = 0; i < 8; i++) {
+				// Check if this bit is set in op
+				if ((static_cast<u_int8_t>(op) & (1 << i)) != 0 & i != 7) {
+					// Check if ARREST attribute in operation is ON, means someone activated arrest this round on this exact player
+					// which results an illegal move
+					if(i == 3 && block_timers[i] == 1){
+						throw std::runtime_error("Player cannot be arrested twice in a lap, illegal move");
+					}
+					block_timers[i] = 1;  // Start timer at 1
+				}
+			}
+		}	
 
 	};
 }

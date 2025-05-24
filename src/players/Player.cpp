@@ -3,7 +3,15 @@
 
 using namespace coup;
 		
-		void Player::setRole(Role r) {
+		void Player::setGame(Game& game){
+			this->setGame(game);
+		}
+
+		void Player::setName(const std::string& name) { 
+			player_name = name; 
+		}
+
+		void Player::setRole(Role& r) {
             this->player_role = r;
 		}
 
@@ -13,12 +21,12 @@ using namespace coup;
 
 		 void Player::gather() {
 			this->isMyTurn(); // Check if its my turn
-			if(!Over10Coins()){
+			if(!IsOver10Coins()){
 				if(is_operation_blocked(Operation::GATHER)){
 					throw std::runtime_error("Player is under sanction, illegal move");
 				}
 				this->current_game.take_coins(1);
-				this->num_coins+=1;
+				this->addCoins(1);
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
@@ -34,12 +42,12 @@ using namespace coup;
 
 		 void Player::tax() {
 			this->isMyTurn(); // Check if its my turn
-			if(!Over10Coins()){
+			if(!IsOver10Coins()){
 				if(is_operation_blocked(Operation::TAX)){
 					throw std::runtime_error("Player is under sanction, illegal move");
 				}
 				this->current_game.take_coins(2);
-				this->num_coins+=2;
+				this->addCoins(2);
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
@@ -55,9 +63,9 @@ using namespace coup;
 
 		 void Player::bribe() {
 			this->isMyTurn(); // Check if its my turn
-			if(!Over10Coins()){
+			if(!IsOver10Coins()){
 
-				this->remove_coins(4);
+				this->addCoins(-4);
 				this->current_game.add_coins(4);
 
 				
@@ -75,7 +83,7 @@ using namespace coup;
 					}
 				}
 				else{
-					this->blocked_operations |= Operation::EXTRA_TURN;
+					block_operation_with_timer(Operation::EXTRA_TURN);
 				}
 			}
 			else{
@@ -85,13 +93,13 @@ using namespace coup;
 	
 		 void Player::arrest(Player& o) { 
 			this->isMyTurn(); // Check if its my turn
-			if(!Over10Coins()){
+			if(!IsOver10Coins()){
 				if(is_operation_blocked(Operation::ARREST)){
 					throw std::runtime_error("Player arrest action is disabled, illegal move");
 				}
 				o.block_operation_with_timer(Operation::ARREST);
-				o.remove_coins(1);
-				this->num_coins +=1;
+				o.addCoins(-1);
+				this->addCoins(1);
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
@@ -107,11 +115,11 @@ using namespace coup;
 	
 		 void Player::sanction(Player& o)  {
 			this->isMyTurn(); // Check if its my turn
-			if(!Over10Coins()){
+			if(!IsOver10Coins()){
 				if(&(*this) == &o){ // check if im trying to sanction my self
 					throw std::runtime_error("Cannot sanction yourself, illegal move");
 				}
-				this->remove_coins(3);
+				this->addCoins(-3);
 				block_operation_with_timer(Operation::GATHER);
 				block_operation_with_timer(Operation::TAX);
 				this->current_game.add_coins(3);
@@ -130,9 +138,9 @@ using namespace coup;
 		
 		 void Player::coup(Player& o) {
 			this->isMyTurn(); // Check if its my turn
-			if(!Over10Coins()){
+			if(!IsOver10Coins()){
 
-				this->remove_coins(7);
+				this->addCoins(-7);
 				current_game.add_coins(7);
 
 				// Check with all the generals if they want to undo coup
@@ -151,7 +159,7 @@ using namespace coup;
 
 				// No General interventio - proceed with coup
 				o.is_active = false; // set player non-active
-				this->current_game.removePlayer(o.player_name);
+				this->current_game.removePlayer(o.getName());
 
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
@@ -179,13 +187,13 @@ using namespace coup;
 			}
 		}
 		
-		void Player::remove_coins(int n){
+		void Player::addCoins(int n){
 			int totalCoins = this->num_coins;
 			// Take whats left if (n > num_coins)
-			if(totalCoins - n < 0){
+			if(totalCoins + n < 0){
 				throw std::runtime_error("Player "+this->player_name+" doesn't have enough money");
 			}
-			this->num_coins -=n;		
+			this->num_coins +=n;		
 		}
 
 		void Player::isMyTurn(){
@@ -202,6 +210,6 @@ using namespace coup;
 			this->is_active = t;
 		}
 
-		bool Player::Over10Coins(){
+		bool Player::IsOver10Coins(){
 			return this->num_coins>=10;
 		}

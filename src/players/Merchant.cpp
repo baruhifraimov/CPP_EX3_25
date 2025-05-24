@@ -38,6 +38,6 @@ using namespace coup;
 		
 		void Merchant::addCoinsBuff(){
 			if(this->coins() >= 3){
-				this->num_coins+=1;
+				this->addCoins(1);
 			}
 		}

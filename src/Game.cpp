@@ -8,26 +8,32 @@ using namespace coup;
 
 std::string Game::turn() {
     // Check for empty player list
-    if (this->player_names.empty()) {
+    if (this->player_objects.empty()) {
         throw std::runtime_error("No players in the game");
     }
     
     // Calculate current player index
-    size_t current_index = this->index % this->player_names.size();
+    size_t current_index = this->index % this->player_objects.size();
     
-    return player_names.at(current_index);
+    return player_objects.at(current_index)->getName();
 }
 
 std::vector<std::string> Game::players(){
-	return this->player_names;
+	std::vector<std::string> names;
+    for (Player* player : player_objects) {
+        if (player && player->getActive()) {  // Only active players
+            names.push_back(player->getName());
+        }
+    }
+    return names;
 }
 
 std::string Game::winner(){
-	if(this->player_names.size()!=1){
+	if(this->player_objects.size()!=1){
 		throw std::runtime_error( "Game is still runing" );
 	}
 	else{
-		return this->player_names[0];
+		return this->player_objects[0]->getName();
 	}
 }
 
@@ -38,23 +44,18 @@ void Game::registerPlayer(Player* player) {
 			return;  // Already registered
 		}
 	}
-	this->addPlayer(player->getName());
+	
 	player_objects.emplace_back(player);
 }
 
-void Game::addPlayer(std::string name){
-	this->player_names.push_back(name);
-}
-
 void Game::removePlayer(std::string name){
-	for (size_t i = 0; i < this->player_names.size(); i++)
+	for (size_t i = 0; i < this->player_objects.size(); i++)
 	{	
 		// deletes the payer(name) from the players list (0 if true)
-		if(!this->player_names.at(i).compare(name)){
+		if(!this->player_objects.at(i)->getName().compare(name)){
 			if(i <= this->index){
 				this->index--;
 			}
-			this->player_names.erase(begin(player_names)+i);
 			player_objects.at(i)->setActive(false);
 			this->player_objects.erase(begin(player_objects)+i);
 			return;
@@ -84,7 +85,7 @@ void Game::next_turn(){
 	{
 		if(player_objects.at(i)->getName() == this->turn()) {
 			player_objects[i]->update_block_timers();
-			if(player_objects.at(i)->Over10Coins()){
+			if(player_objects.at(i)->IsOver10Coins()){
 				std::cout << "Player got over 10 coins, must use coup, all other abbilities are disabled" << std::endl;
 			}
 		}
@@ -166,7 +167,7 @@ bool Game::ask_general_intervention(Player& general, Player& attacker, Player& t
     if (response == 'y' || response == 'Y') {
         // General pays cost to block
         if (general.coins() >= 5) {
-            general.remove_coins(5);
+            general.addCoins(-5);
             this->add_coins(5);
             return true;
         } else {
@@ -189,7 +190,7 @@ bool Game::ask_judge_intervention(Player& general, Player& attacker){
     if (response == 'y' || response == 'Y') {
         // General pays cost to block
         if (general.coins() >= 5) {
-            general.remove_coins(5);
+            general.addCoins(-5);
             this->add_coins(5);
             return true;
         } else {

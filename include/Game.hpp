@@ -12,13 +12,13 @@ namespace coup{
 class Game {
 	private:
 		std::vector<Player*> player_objects; 
-		std::vector<std::string> player_names; // (might delete later)
 		int cur_round,index;
 		int treasury; // coins bank
+
 	public:
 
 		// Constructor
-		Game() : player_names(),
+		Game() : 
 				 player_objects(),
 				 cur_round(0),
 				 index(0),
@@ -27,12 +27,15 @@ class Game {
 			
 		}
 		// Copy constructor
-		Game(Game &o) : player_names(o.player_names), cur_round(o.cur_round){
+		Game(Game &o) : player_objects(o.player_objects), cur_round(o.cur_round){
 
 		}
 		// Destructor
 		virtual ~Game(){
-			
+			for(Player* player : player_objects) {
+				delete player;  // Clean up allocated Player objects
+			}
+			player_objects.clear();
 		}
 		// Copy assignment operator
 		Game& operator=(Game& o)
@@ -43,7 +46,7 @@ class Game {
 			
 			// Copy data
 			this->cur_round = o.cur_round;
-			this->player_names = o.player_names;
+			this->player_objects = o.player_objects;
 			
 			return *this;
 
@@ -70,17 +73,12 @@ class Game {
 		std::string winner();
 
 		/**
-		 * @brief Register player object with the game
+		 * @brief Register player object to the current game
 		 * 
 		 * @param player 
 		 */
 		void registerPlayer(Player* player);
 
-		/**
-		 * @brief Adds player name to the current game
-		 * 
-		 */
-		void addPlayer(std::string name);
 
 		/**
 		 * @brief Removes the player based on name
