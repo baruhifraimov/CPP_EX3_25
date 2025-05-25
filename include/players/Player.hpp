@@ -55,9 +55,7 @@ class Player{
 		}
 
 		// Destructor
-		virtual ~Player(){
-			delete current_game;
-		}
+		virtual ~Player() = default;
 
 		// Copy assignment operator
 		Player& operator=(Player& o)
@@ -188,7 +186,7 @@ class Player{
 		 * @return std::ostream& Out with buffered player_name
 		 */
 		friend std::ostream& operator<<(std::ostream& out, const Player& p){
-			return out << p.player_name;
+			return out << "["<< to_string(p.player_role)<<":" << p.player_name<<"]";
 		}
 
 		/**
@@ -241,7 +239,7 @@ class Player{
 		 * 
 		 * @return Game 
 		 */
-		virtual Game getGame();
+		virtual Game& getGame();
 
 		/**
 		 * @brief Sets a timer for a blocked operation to understand when to unblock it in the next round

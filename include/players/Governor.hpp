@@ -9,7 +9,7 @@ class Governor : public Player {
 	public:
 		// Constructor
 		Governor(Game& game, const std::string& name) : Player(game, name) {
-			this->setRole(Role::MERCHANT);
+			this->setRole(Role::GOVERNOR);
 		}
 
 		 /** * @brief Can *ONLY* disable tax action from other players

@@ -13,6 +13,7 @@ using namespace coup;
 				this->addCoins(6);
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
+					std::cout << "XTRA TURN";
 					unblock_operation(Operation::EXTRA_TURN);
 				}
 				else{

@@ -191,7 +191,7 @@ using namespace coup;
 						return;
 					}
 				}
-
+				else{
 				// No General interventio - proceed with coup
 				o.is_active = false; // set player non-active
 				this->current_game->removePlayer(o.getName());
@@ -203,6 +203,7 @@ using namespace coup;
 				else{
 					this->current_game->next_turn(); // next round
 				}
+			}
 			}
 			else{
 				throw std::runtime_error("Coup is disabled, got over or equal to 10 coins, illegal move");
@@ -226,14 +227,14 @@ using namespace coup;
 			int totalCoins = this->num_coins;
 			// Take whats left if (n > num_coins)
 			if(totalCoins + n < 0){
-				throw std::runtime_error("Player "+this->player_name+" doesn't have enough money");
+				throw std::runtime_error("Player " + this->player_name + " doesn't have enough money");
 			}
 			this->num_coins +=n;		
 		}
 
 		void Player::isMyTurn(){
 			if(this->current_game->turn() != this->player_name){
-				throw std::runtime_error("Not player turn, Illegal move");
+				throw std::runtime_error("[" + to_string(this->player_role) + ":" + this->player_name + "] Not player turn, Illegal move");
 			}
 		}
 
@@ -253,16 +254,16 @@ using namespace coup;
 			return this->num_coins>=10;
 		}
 
-		Game Player::getGame(){
+		Game& Player::getGame(){
 			return *this->current_game;
 		}
 
 		bool Player::is_operation_blocked(Operation op) {
-			return (static_cast<uint8_t>(blocked_operations) & static_cast<uint8_t>(op)) != 0;
+			return (static_cast<u_int8_t>(blocked_operations) & static_cast<u_int8_t>(op)) != 0;
 		}
 
 		void Player::unblock_operation(Operation op) {
-			blocked_operations = static_cast<Operation>(static_cast<uint8_t>(blocked_operations) & ~static_cast<uint8_t>(op));
+			blocked_operations = static_cast<Operation>(static_cast<u_int8_t>(blocked_operations) & ~static_cast<u_int8_t>(op));
 		}
 
 		void Player::block_operation_with_timer(Operation op) {

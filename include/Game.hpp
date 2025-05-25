@@ -33,7 +33,7 @@ class Game {
 
 		}
 		// Destructor
-		~Game();
+		~Game() = default;  
 
 		// Copy assignment operator
 		Game& operator=(Game& o)

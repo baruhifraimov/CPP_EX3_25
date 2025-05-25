@@ -9,14 +9,6 @@
 
 using namespace coup;
 
-// Destructor
-Game::~Game(){
-	for(Player* player : player_objects) {
-		delete player;  // Clean up allocated Player objects
-	}
-	player_objects.clear();
-}
-
 std::string Game::turn() {
     // Check for empty player list
     if (this->player_objects.empty()) {
@@ -101,7 +93,7 @@ void Game::next_turn(){
 		if(player_objects.at(i)->getName() == this->turn()) {
 			player_objects[i]->update_block_timers();
 			if(player_objects.at(i)->IsOver10Coins()){
-				std::cout << "Player got over 10 coins, must use coup, all other abbilities are disabled" << std::endl;
+				std::cout << *player_objects.at(i)<<" got over 10 coins, must use coup, all other abilities are disabled" << std::endl;
 			}
 			// Check if Merchant, if yes -> do special ability
 			if(player_objects.at(i)->getRole() == Role::MERCHANT && player_objects.at(i)->coins() >= 3){
