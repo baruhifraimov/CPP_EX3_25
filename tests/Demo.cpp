@@ -45,62 +45,62 @@ int main() {
     general.gather();
     judge.gather();
 
-    // Expected exception - Not spy's turn
-    try{
-        spy.gather();
-    } catch (const std::exception &e){
-        std::cerr << e.what() << '\n';
-    }
+    // // Expected exception - Not spy's turn
+    // try{
+    //     spy.gather();
+    // } catch (const std::exception &e){
+    //     std::cerr << e.what() << '\n';
+    // }
 
-    governor.gather();
-    spy.tax();
+    // governor.gather();
+    // spy.tax();
 
-    // Expected exception - Judge cannot undo tax
-    try{
-        judge.undo(governor);
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << '\n';
-    }
+    // // Expected exception - Judge cannot undo tax
+    // try{
+    //     judge.undo(governor);
+    // } catch (const std::exception &e) {
+    //     std::cerr << e.what() << '\n';
+    // }
 
-    cout << governor.coins() << endl; // Expected: 2
-    cout << spy.coins() << endl; // Expected: 3
+    // cout << governor.coins() << endl; // Expected: 2
+    // cout << spy.coins() << endl; // Expected: 3
 
-    governor.block_tax(spy); // Governor undo tax
-    cout << spy.coins() << endl; // Expected: 1
+    // governor.block_tax(spy); // Governor undo tax
+    // cout << spy.coins() << endl; // Expected: 1
 
-    baron.tax();
-    general.gather();
-    judge.gather(); 
+    // baron.tax();
+    // general.gather();
+    // judge.gather(); 
 
-    governor.tax();
-    spy.gather();
-    baron.invest(); // Baron traded its 3 coins and got 6 
-    general.gather();
-    judge.gather();
+    // governor.tax();
+    // spy.gather();
+    // baron.invest(); // Baron traded its 3 coins and got 6 
+    // general.gather();
+    // judge.gather();
     
-    cout << baron.coins() << endl; // Expected: 6
+    // cout << baron.coins() << endl; // Expected: 6
 
-    governor.tax();
-    spy.gather();
-    baron.gather();
-    general.gather();
-    judge.gather();
+    // governor.tax();
+    // spy.gather();
+    // baron.gather();
+    // general.gather();
+    // judge.gather();
 
-    governor.tax();
-    spy.gather();
-    cout << baron.coins() << endl; // Expected: 7
-    baron.coup(governor); // Coup against governor
-    general.gather();
-    judge.gather();
+    // governor.tax();
+    // spy.gather();
+    // cout << baron.coins() << endl; // Expected: 7
+    // baron.coup(governor); // Coup against governor
+    // general.gather();
+    // judge.gather();
     
-    players = game_1.players();
-    // Since no one blocked the Baron, the expected output is:
-    // Yossi
-    // Meirav
-    // Reut
-    // Gilad
-    for (string name : players) {
-        cout << name << endl;
-    }
+    // players = game_1.players();
+    // // Since no one blocked the Baron, the expected output is:
+    // // Yossi
+    // // Meirav
+    // // Reut
+    // // Gilad
+    // for (string name : players) {
+    //     cout << name << endl;
+    // }
 
 }

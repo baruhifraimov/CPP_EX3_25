@@ -11,7 +11,6 @@
 namespace coup{
 
 class Player;
-
 class Game {
 	private:
 		std::vector<Player*> player_objects; 
@@ -34,12 +33,8 @@ class Game {
 
 		}
 		// Destructor
-		virtual ~Game(){
-			for(Player* player : player_objects) {
-				delete player;  // Clean up allocated Player objects
-			}
-			player_objects.clear();
-		}
+		~Game();
+
 		// Copy assignment operator
 		Game& operator=(Game& o)
 			{	// Check self assignment

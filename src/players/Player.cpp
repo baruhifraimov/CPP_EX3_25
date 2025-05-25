@@ -4,7 +4,7 @@
 using namespace coup;
 		
 		void Player::setGame(Game& game){
-			this->setGame(game);
+			current_game = &game;
 		}
 
 		void Player::setName(const std::string& name) { 
@@ -20,19 +20,20 @@ using namespace coup;
 		}
 
 		 void Player::gather() {
+			std::cout << "Activating gather";
 			this->isMyTurn(); // Check if its my turn
 			if(!IsOver10Coins()){
 				if(is_operation_blocked(Operation::GATHER)){
 					throw std::runtime_error("Player is under sanction, illegal move");
 				}
-				this->current_game.add_coins(-1);
+				this->current_game->add_coins(-1);
 				this->addCoins(1);
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
 				}
 				else{
-					this->current_game.next_turn(); // next round
+					this->current_game->next_turn(); // next round
 				}
 			}
 			else{
@@ -47,11 +48,11 @@ using namespace coup;
 					throw std::runtime_error("Player is under sanction, illegal move");
 				}
 				if(this->player_role == Role::GOVERNOR){
-					this->current_game.add_coins(-3);
+					this->current_game->add_coins(-3);
 					this->addCoins(3);
 				}
 				else{
-					this->current_game.add_coins(-2);
+					this->current_game->add_coins(-2);
 					this->addCoins(2);
 				}
 				if (is_operation_blocked(Operation::EXTRA_TURN))
@@ -59,7 +60,7 @@ using namespace coup;
 					unblock_operation(Operation::EXTRA_TURN);
 				}
 				else{
-					this->current_game.next_turn(); // next round
+					this->current_game->next_turn(); // next round
 					}
 				}
 			else{
@@ -72,11 +73,11 @@ using namespace coup;
 			if(!IsOver10Coins()){
 
 				this->addCoins(-4);
-				this->current_game.add_coins(4);
+				this->current_game->add_coins(4);
 
 				
 				// Check with all the judges if they want to block bribe
-				if(current_game.check_judge_intervention(*this)){
+				if(current_game->check_judge_intervention(*this)){
 					// Bribe was blocked by a Judge
 					// Coins already spent, loser
 					if (is_operation_blocked(Operation::EXTRA_TURN)){
@@ -84,7 +85,7 @@ using namespace coup;
 						return;
 					}
 					else{
-						this->current_game.next_turn(); // next round
+						this->current_game->next_turn(); // next round
 						return;
 					}
 				}
@@ -107,7 +108,7 @@ using namespace coup;
 				// If the player we want to attack is Merchant, take 2 and add to bank
 				if(o.getRole() == Role::MERCHANT){
 					o.addCoins(-2);
-					current_game.add_coins(2);
+					current_game->add_coins(2);
 				}
 				else if(o.getRole() == Role::GENERAL){
 					// SIMULATING -- 
@@ -127,7 +128,7 @@ using namespace coup;
 					unblock_operation(Operation::EXTRA_TURN);
 				}
 				else{
-					this->current_game.next_turn(); // next round
+					this->current_game->next_turn(); // next round
 				}
 			}
 			else{
@@ -144,13 +145,13 @@ using namespace coup;
 				o.block_operation_with_timer(Operation::GATHER);
 				o.block_operation_with_timer(Operation::TAX);
 				this->addCoins(-3);
-				this->current_game.add_coins(3);
+				this->current_game->add_coins(3);
 
 				// Check if Baron, if yes use his special ability
 				// If casted on Baron, give him one additional coin fr0m bank
 				if(o.getRole() == Role::BARON){
 					o.addCoins(1);
-					current_game.add_coins(-1);
+					current_game->add_coins(-1);
 				}
 				// Check if Judge, if yes use his special ability
 				// If casted on Judge, pay extra coin
@@ -162,7 +163,7 @@ using namespace coup;
 					unblock_operation(Operation::EXTRA_TURN);
 				}
 				else{
-					this->current_game.next_turn(); // next round
+					this->current_game->next_turn(); // next round
 				}
 			}
 			else{
@@ -175,10 +176,10 @@ using namespace coup;
 			if(!IsOver10Coins()){
 
 				this->addCoins(-7);
-				current_game.add_coins(7);
+				current_game->add_coins(7);
 
 				// Check with all the generals if they want to undo coup
-				if(current_game.check_general_intervention(*this,o)){
+				if(current_game->check_general_intervention(*this,o)){
 					// Coup was blocked by a General
 					// Coins already spent, but target is not eliminated
 					if (is_operation_blocked(Operation::EXTRA_TURN)){
@@ -186,21 +187,21 @@ using namespace coup;
 						return;
 					}
 					else{
-						this->current_game.next_turn(); // next round
+						this->current_game->next_turn(); // next round
 						return;
 					}
 				}
 
 				// No General interventio - proceed with coup
 				o.is_active = false; // set player non-active
-				this->current_game.removePlayer(o.getName());
+				this->current_game->removePlayer(o.getName());
 
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
 				}
 				else{
-					this->current_game.next_turn(); // next round
+					this->current_game->next_turn(); // next round
 				}
 			}
 			else{
@@ -231,7 +232,7 @@ using namespace coup;
 		}
 
 		void Player::isMyTurn(){
-			if(this->current_game.turn() != this->player_name){
+			if(this->current_game->turn() != this->player_name){
 				throw std::runtime_error("Not player turn, Illegal move");
 			}
 		}
@@ -245,7 +246,7 @@ using namespace coup;
 		}
 
 		bool Player::getActive(){
-			this->is_active;
+			return this->is_active;
 		}
 
 		bool Player::IsOver10Coins(){
@@ -253,5 +254,49 @@ using namespace coup;
 		}
 
 		Game Player::getGame(){
-			return this->current_game;
+			return *this->current_game;
+		}
+
+		bool Player::is_operation_blocked(Operation op) {
+			return (static_cast<uint8_t>(blocked_operations) & static_cast<uint8_t>(op)) != 0;
+		}
+
+		void Player::unblock_operation(Operation op) {
+			blocked_operations = static_cast<Operation>(static_cast<uint8_t>(blocked_operations) & ~static_cast<uint8_t>(op));
+		}
+
+		void Player::block_operation_with_timer(Operation op) {
+					blocked_operations |= op;
+			
+			// Initialize timer for each bit that's set
+			for (int i = 0; i < 8; i++) {
+				// Check if this bit is set in op
+				if ((static_cast<u_int8_t>(op) & (1 << i)) != 0 & i != 7) {
+					// Check if ARREST attribute in operation is ON, means someone activated arrest this round on this exact player
+					// which results an illegal move
+					if(i == 3 && block_timers[i] == 1){
+						throw std::runtime_error("Player cannot be arrested twice in a lap, illegal move");
+					}
+					block_timers[i] = 1;  // Start timer at 1
+				}
+			}
+		}
+		int Player::coins() const {
+			return this->num_coins;
+		}
+
+		void Player::update_block_timers(){
+			for (int i = 0; i < 8; i++) {
+				// If this bit is blocked and has a timer
+				if ((static_cast<u_int8_t>(blocked_operations) & (1 << i)) != 0 && block_timers[i] > 0) {
+					block_timers[i]++;  // Increment timer
+					
+					// If timer reaches above 2, unblock this operation
+					if (block_timers[i] > 2) {
+						blocked_operations = static_cast<Operation>(
+							static_cast<u_int8_t>(blocked_operations) & ~(1 << i));
+						block_timers[i] = 0;  // Reset timer
+					}
+				}
+			}
 		}

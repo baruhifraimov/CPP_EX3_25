@@ -6,7 +6,7 @@ using namespace coup;
 
 		 void Spy::view_coins(Player &p){
 			std::cout << "Player: " + p.player_name + "has " 
-					  << p.num_coins +" coins" << std::endl;
+					  << p.num_coins << " coins" << std::endl;
 		}
 
 		void Spy::disable_arrest(Player &p){

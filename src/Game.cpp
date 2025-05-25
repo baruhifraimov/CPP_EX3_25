@@ -9,6 +9,14 @@
 
 using namespace coup;
 
+// Destructor
+Game::~Game(){
+	for(Player* player : player_objects) {
+		delete player;  // Clean up allocated Player objects
+	}
+	player_objects.clear();
+}
+
 std::string Game::turn() {
     // Check for empty player list
     if (this->player_objects.empty()) {

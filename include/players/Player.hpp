@@ -12,7 +12,7 @@ class Player{
 	private:
 		std::string player_name;
 		int num_coins;
-		Game &current_game;
+		Game *current_game;
 		Operation blocked_operations;
 		bool is_active;
 		Role player_role;
@@ -25,7 +25,7 @@ class Player{
 		Player(Game& game,std::string name): 
 											player_name(name), 
 											num_coins(0), 
-											current_game(game),
+											current_game(&game),
 											blocked_operations(Operation::NONE),
 											is_active(true),
 											player_role() {
@@ -43,12 +43,21 @@ class Player{
 		// Copy constructor
 		Player(Player &o): 	player_name(o.player_name), 
 							num_coins(o.num_coins), 
-							current_game(o.current_game){
+							current_game(o.current_game),
+							blocked_operations(o.blocked_operations),
+							is_active(o.is_active),
+							player_role(o.player_role) {
+								  // Initialize block_timers
+			for (int i = 0; i < 8; i++) {
+				block_timers[i] = o.block_timers[i];
+			}
 
 		}
 
 		// Destructor
-		virtual ~Player(){}
+		virtual ~Player(){
+			delete current_game;
+		}
 
 		// Copy assignment operator
 		Player& operator=(Player& o)
@@ -59,6 +68,13 @@ class Player{
 			player_name = o.player_name;
 			num_coins = o.num_coins;
 			current_game = o.current_game;
+			blocked_operations = o.blocked_operations;
+			is_active = o.is_active;
+			player_role = o.player_role;
+
+			for (int i = 0; i < 8; i++) {
+				block_timers[i] = o.block_timers[i];
+			}
 			return *this;
 
 		}
@@ -104,21 +120,7 @@ class Player{
 		 * Means you already passed a round with the blocked operation and now you are in a new round, means the operation is unlocked
 		 * 
 		 */
-		void update_block_timers() {
-			for (int i = 0; i < 8; i++) {
-				// If this bit is blocked and has a timer
-				if ((static_cast<u_int8_t>(blocked_operations) & (1 << i)) != 0 && block_timers[i] > 0) {
-					block_timers[i]++;  // Increment timer
-					
-					// If timer reaches above 2, unblock this operation
-					if (block_timers[i] > 2) {
-						blocked_operations = static_cast<Operation>(
-							static_cast<u_int8_t>(blocked_operations) & ~(1 << i));
-						block_timers[i] = 0;  // Reset timer
-					}
-				}
-			}
-		}
+		void update_block_timers();
 
 		/** @brief Player takes 1 coin from treasury
 			* COST: 0
@@ -168,9 +170,7 @@ class Player{
 		 * 
 		 * @return int num of coins
 		 */
-		virtual int coins() const{
-			return this->num_coins;
-		}
+		virtual int coins() const;
 
 		// /**
 		//  * @brief Undo last Player action
@@ -248,22 +248,7 @@ class Player{
 		 * Initializes timer with 1 for each new block
 		 * @param op The operation that we activated the block
 		 */
-		void block_operation_with_timer(Operation op) {
-			blocked_operations |= op;
-			
-			// Initialize timer for each bit that's set
-			for (int i = 0; i < 8; i++) {
-				// Check if this bit is set in op
-				if ((static_cast<u_int8_t>(op) & (1 << i)) != 0 & i != 7) {
-					// Check if ARREST attribute in operation is ON, means someone activated arrest this round on this exact player
-					// which results an illegal move
-					if(i == 3 && block_timers[i] == 1){
-						throw std::runtime_error("Player cannot be arrested twice in a lap, illegal move");
-					}
-					block_timers[i] = 1;  // Start timer at 1
-				}
-			}
-		}	
+		void block_operation_with_timer(Operation op);
 
 	// Protected methods, hidden from the public
 	protected:
@@ -277,27 +262,14 @@ class Player{
 		 * @return true Is blocked
 		 * @return false Is unblocked
 		 */
-		bool is_operation_blocked(Operation op){
-			return ((blocked_operations & op) == op);
-		}
+		bool is_operation_blocked(Operation op);
 
 		/**
 		 * @brief Unblocking operations by unmasking them
 		 * 
 		 * @param op The operation that you want to unblock
 		 */
-		void unblock_operation(Operation op) {
-			blocked_operations = blocked_operations & ~op;
-		}
-
-		/**
-		 * @brief Unblocking operations by unmasking them
-		 * 
-		 * @param op The operation that you want to unblock now with integers
-		 */
-		void unblock_operation(u_int8_t op) {
-			blocked_operations = blocked_operations & ~static_cast<Operation>(op);
-		}
+		void unblock_operation(Operation op);
 
 	};
 }
