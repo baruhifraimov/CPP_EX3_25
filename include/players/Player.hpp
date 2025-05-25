@@ -18,6 +18,9 @@ class Player{
 		Role player_role;
 
 	public:
+
+		friend class Spy;  // Spy can now access hidden attributes
+
 		// Constructor
 		Player(Game& game,std::string name): 
 											player_name(name), 
@@ -86,7 +89,7 @@ class Player{
 		 * 
 		 * @param r Role
 		 */
-        void setRole(Role& r);
+        void setRole(Role r);
 
 		/**
 		 * @brief Get the player Role
@@ -169,13 +172,13 @@ class Player{
 			return this->num_coins;
 		}
 
-		/**
-		 * @brief Undo last Player action
-		 * @note: Only Judge and Governor
-		 * COST: 0
-		 * @param o The other player we want to undo the action
-		 */
-		virtual void undo(Player& o);
+		// /**
+		//  * @brief Undo last Player action
+		//  * @note: Only Judge and Governor
+		//  * COST: 0
+		//  * @param o The other player we want to undo the action
+		//  */
+		// virtual void undo(Player& o);
 
 		/**
 		 * @brief Operator << prints the player name to STDOUT
@@ -233,6 +236,35 @@ class Player{
 		 */
 		virtual bool IsOver10Coins();
 
+		/**
+		 * @brief Get the Game object
+		 * 
+		 * @return Game 
+		 */
+		virtual Game getGame();
+
+		/**
+		 * @brief Sets a timer for a blocked operation to understand when to unblock it in the next round
+		 * Initializes timer with 1 for each new block
+		 * @param op The operation that we activated the block
+		 */
+		void block_operation_with_timer(Operation op) {
+			blocked_operations |= op;
+			
+			// Initialize timer for each bit that's set
+			for (int i = 0; i < 8; i++) {
+				// Check if this bit is set in op
+				if ((static_cast<u_int8_t>(op) & (1 << i)) != 0 & i != 7) {
+					// Check if ARREST attribute in operation is ON, means someone activated arrest this round on this exact player
+					// which results an illegal move
+					if(i == 3 && block_timers[i] == 1){
+						throw std::runtime_error("Player cannot be arrested twice in a lap, illegal move");
+					}
+					block_timers[i] = 1;  // Start timer at 1
+				}
+			}
+		}	
+
 	// Protected methods, hidden from the public
 	protected:
 		// Field to track block timers for each operation
@@ -266,28 +298,6 @@ class Player{
 		void unblock_operation(u_int8_t op) {
 			blocked_operations = blocked_operations & ~static_cast<Operation>(op);
 		}
-
-		/**
-		 * @brief Sets a timer for a blocked operation to understand when to unblock it in the next round
-		 * Initializes timer with 1 for each new block
-		 * @param op The operation that we activated the block
-		 */
-		void block_operation_with_timer(Operation op) {
-			blocked_operations |= op;
-			
-			// Initialize timer for each bit that's set
-			for (int i = 0; i < 8; i++) {
-				// Check if this bit is set in op
-				if ((static_cast<u_int8_t>(op) & (1 << i)) != 0 & i != 7) {
-					// Check if ARREST attribute in operation is ON, means someone activated arrest this round on this exact player
-					// which results an illegal move
-					if(i == 3 && block_timers[i] == 1){
-						throw std::runtime_error("Player cannot be arrested twice in a lap, illegal move");
-					}
-					block_timers[i] = 1;  // Start timer at 1
-				}
-			}
-		}	
 
 	};
 }

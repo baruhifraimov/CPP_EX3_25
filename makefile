@@ -1,20 +1,60 @@
 # baruh.ifraimov@gmail.com
 CXX = clang++
-CXXFLAGS = -Wall -std=c++17 -ggdb
+CXXFLAGS = -Wall -std=c++17 -ggdb -I$(INC) -I$(PLYR)
 OBJ = ./obj/
 SRC = ./src/
-INC = ./inc/
+INC = ./include/
+PLYR = ./include/players/
+PLYR_SRC = ./src/players/
+TST = ./tests/
 
-all: mmain mtest
+# Create obj directory
+$(shell mkdir -p $(OBJ))
 
-Main:
-	echo "Compiling Main..."
+# all: mmain mtest
+
+Main: $(OBJ)Demo.o $(OBJ)Game.o $(OBJ)Player.o $(OBJ)Governor.o $(OBJ)Spy.o $(OBJ)Baron.o $(OBJ)General.o $(OBJ)Judge.o $(OBJ)Merchant.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+# Compile main source files
+$(OBJ)Demo.o: $(TST)Demo.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)Game.o: $(SRC)Game.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Compile Demo (test file)
+$(OBJ)Demo.o: tests/Demo.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Compile player source files
+$(OBJ)Player.o: $(PLYR_SRC)Player.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)Governor.o: $(PLYR_SRC)Governor.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)Spy.o: $(PLYR_SRC)Spy.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)Baron.o: $(PLYR_SRC)Baron.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)General.o: $(PLYR_SRC)General.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)Judge.o: $(PLYR_SRC)Judge.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)Merchant.o: $(PLYR_SRC)Merchant.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 
 test:
 	echo "Running tests..."
 
 mmain:
-	echo "Compiling Main..."
+	$()
 
 mtest:
 	echo "Running tests..."

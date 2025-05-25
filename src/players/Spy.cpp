@@ -3,41 +3,25 @@
 #include "../../include/players/Player.hpp"
 
 using namespace coup;
-		
-		 void Spy::gather() {
 
-		 }
-
-		 void Spy::tax() {
-
-		 }
-
-		 void Spy::bribe() {
-
-		 }
-	
-		 void Spy::arrest(Player& o) {
-
-		 }
-	
-		 void Spy::sanction(Player& o)  {
-
-		 }
-		
-		 void Spy::coup(Player& o) {
-
-		 }
-
-		void Spy::viewCoins(Player &p){
-
+		 void Spy::view_coins(Player &p){
+			std::cout << "Player: " + p.player_name + "has " 
+					  << p.num_coins +" coins" << std::endl;
 		}
 
-		void Spy::disableArrest(Player &p){
-
-		}
-
-		void Spy::undo(Player& o){
-			
-			throw std::runtime_error("This class role undo actions");
-			
+		void Spy::disable_arrest(Player &p){
+			this->isMyTurn(); // Check if its my turn
+			if(!IsOver10Coins()){
+				
+				if (is_operation_blocked(Operation::EXTRA_TURN))
+				{
+					unblock_operation(Operation::EXTRA_TURN);
+				}
+				else{
+					this->getGame().next_turn(); // next round
+				}
+			}
+			else{
+				throw std::runtime_error("Gather is disabled, got over or equal to 10 coins, illegal move");
+			}
 		}

@@ -11,7 +11,7 @@ using namespace coup;
 			player_name = name; 
 		}
 
-		void Player::setRole(Role& r) {
+		void Player::setRole(Role r) {
             this->player_role = r;
 		}
 
@@ -25,7 +25,7 @@ using namespace coup;
 				if(is_operation_blocked(Operation::GATHER)){
 					throw std::runtime_error("Player is under sanction, illegal move");
 				}
-				this->current_game.take_coins(1);
+				this->current_game.add_coins(-1);
 				this->addCoins(1);
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
@@ -46,8 +46,14 @@ using namespace coup;
 				if(is_operation_blocked(Operation::TAX)){
 					throw std::runtime_error("Player is under sanction, illegal move");
 				}
-				this->current_game.take_coins(2);
-				this->addCoins(2);
+				if(this->player_role == Role::GOVERNOR){
+					this->current_game.add_coins(-3);
+					this->addCoins(3);
+				}
+				else{
+					this->current_game.add_coins(-2);
+					this->addCoins(2);
+				}
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
@@ -98,8 +104,24 @@ using namespace coup;
 					throw std::runtime_error("Player arrest action is disabled, illegal move");
 				}
 				o.block_operation_with_timer(Operation::ARREST);
-				o.addCoins(-1);
-				this->addCoins(1);
+				// If the player we want to attack is Merchant, take 2 and add to bank
+				if(o.getRole() == Role::MERCHANT){
+					o.addCoins(-2);
+					current_game.add_coins(2);
+				}
+				else if(o.getRole() == Role::GENERAL){
+					// SIMULATING -- 
+					o.addCoins(-1);
+					this->addCoins(1);
+					// Giving back to the general the money that been taken from him
+					o.addCoins(1);
+					this->addCoins(-1);
+				}
+				else{
+					o.addCoins(-1);
+					this->addCoins(1);
+				}
+
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
@@ -119,10 +141,22 @@ using namespace coup;
 				if(&(*this) == &o){ // check if im trying to sanction my self
 					throw std::runtime_error("Cannot sanction yourself, illegal move");
 				}
+				o.block_operation_with_timer(Operation::GATHER);
+				o.block_operation_with_timer(Operation::TAX);
 				this->addCoins(-3);
-				block_operation_with_timer(Operation::GATHER);
-				block_operation_with_timer(Operation::TAX);
 				this->current_game.add_coins(3);
+
+				// Check if Baron, if yes use his special ability
+				// If casted on Baron, give him one additional coin fr0m bank
+				if(o.getRole() == Role::BARON){
+					o.addCoins(1);
+					current_game.add_coins(-1);
+				}
+				// Check if Judge, if yes use his special ability
+				// If casted on Judge, pay extra coin
+				if(o.getRole() == Role::JUDGE){
+					this->addCoins(-1);
+				}
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
@@ -174,9 +208,9 @@ using namespace coup;
 			}
 		 }
 
-		void Player::undo(Player& o){
-			throw std::runtime_error("This class role undo actions"); // default cannot play 'undo'
-		}
+		// void Player::undo(Player& o){
+		// 	throw std::runtime_error("This class role undo actions"); // default cannot play 'undo'
+		// }
 
 		bool Player::validate_active(){
 			if(!this->is_active){
@@ -210,6 +244,14 @@ using namespace coup;
 			this->is_active = t;
 		}
 
+		bool Player::getActive(){
+			this->is_active;
+		}
+
 		bool Player::IsOver10Coins(){
 			return this->num_coins>=10;
+		}
+
+		Game Player::getGame(){
+			return this->current_game;
 		}

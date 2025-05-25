@@ -2,35 +2,24 @@
 #include "../../include/players/Baron.hpp"
 // if attacked by 'sanction', recieve 1 coin; TODO
 using namespace coup;
-		
-		 void Baron::gather() {
-
-		 }
-
-		 void Baron::tax() {
-
-		 }
-
-		 void Baron::bribe() {
-
-		 }
 	
-		 void Baron::arrest(Player& o) {
-
-		 }
-	
-		 void Baron::sanction(Player& o)  {
-
-		 }
-		
-		 void Baron::coup(Player& p) {
-
-		 }
-		
 		void Baron::invest(){
-
-		}
-
-		void Baron::undo(Player& o){
-			throw std::runtime_error("This class role undo actions");
+			this->isMyTurn(); // Check if its my turn
+			if(!IsOver10Coins()){
+				if(this->coins() < 3){
+					throw std::runtime_error("Invest action is illegal, below 3 coins");
+				}
+				this->addCoins(-3);
+				this->addCoins(6);
+				if (is_operation_blocked(Operation::EXTRA_TURN))
+				{
+					unblock_operation(Operation::EXTRA_TURN);
+				}
+				else{
+					this->getGame().next_turn(); // next round
+				}
+			}
+			else{
+				throw std::runtime_error("Invest is disabled, got over or equal to 10 coins, illegal move");
+			}
 		}

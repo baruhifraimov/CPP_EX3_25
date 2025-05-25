@@ -9,52 +9,22 @@ class Judge : public Player {
 
 	public:
 		// Constructor
-		Judge(Game& game, const std::string& name) : Player(game, name) {}
+		Judge(Game& game, const std::string& name) : Player(game, name) {
+			this->setRole(Role::JUDGE);
+		}
 
-
-		/** @brief Player takes 1 coin from treasury
-			* COST: 0
-			* can be disabled by: sanction
+		/**	
+		* @brief Judge's special ability to block a bribe action
+		* 
+		* This method allows a Judge to intervene and block an attempted bribe
+		* by another player. When called, it prompts the Judge player for 
+		* confirmation and, if approved, forces the player who attempted the bribe
+		* to pay an additional coin to the treasury as a penalty.
+		* 
+		* @param o The player attempting the bribe action
+		* @return true If the Judge successfully blocks the bribe
+		* @return false If the Judge declines to intervene
 		*/
-		 void gather() override;
-
-		/** @brief Player takes 2 coins from treasury
-			* COST: 0
-			* can be disabled by: certain roles/operations
-		*/		
-		 void tax() override;
-
-		/** @brief Player pays to get an additional action
-			* COST: 2
-			* can be disabled by: NA
-		*/		
-		 void bribe() override;
-
-		/** @brief Player selects a player (not himself) and takes from him 1 coin
-		 	* NOTES: cannot be used twice on the same player in a row
-			* COST: 0
-			* can be disabled by: NA
-		*/		
-		 void arrest(Player& o) override;
-
-		/** @brief Player selects a player (not himself) and disables his (gather,tax) actions until this player next turn
-			* COST: 3
-			* can be disabled by: NA
-		*/		
-		 void sanction(Player& o) override;
-
-		/** * @brief Player selects a player (not himself) and removes him from the game
-			* COST: 7
-			* can be disabled by: certain conditions
-		*/		
-		 void coup(Player& p) override;
-		
-		 /**
-		  * @brief Can *ONLY* disable bribe action
-		  * 
-		  * @param o The other player that we want to disable his bribe action
-		  */
-		 void undo(Player& o) override;
-
+		bool undo(Player& o);
 };
 }

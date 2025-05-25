@@ -2,37 +2,29 @@
 #include "../../include/players/General.hpp"
 #include "../../include/players/Player.hpp"
 
-// if attacked by 'arrest', recieve 1 coin; TODO
 using namespace coup;
+
+		bool General::undo(Player& attacker, Player& target) {
+		// Show intervention prompt
+		std::cout << this->getName() << " (General), do you want to block " 
+				<< attacker.getName() << "'s coup on " << target.getName() 
+				<< "? (y/n): ";
+				
+		char response;
+		std::cin >> response;
 		
-		 void General::gather() {
-
-		 }
-
-		 void General::tax() {
-
-		 }
-
-		 void General::bribe() {
-
-		 }
-	
-		 void General::arrest(Player& o) {
-
-		 }
-	
-		 void General::sanction(Player& o)  {
-
-		 }
-		
-		 void General::coup(Player& o) {
-
-		 }
-		
-		void General::preventCoup(Player& o){
-
+		if (response == 'y' || response == 'Y') {
+			// Check if General has enough coins
+			if (this->coins() >= 5) {
+				this->addCoins(-5);
+				this->getGame().add_coins(5);
+				std::cout << "General " << this->getName() << " blocks the coup!" << std::endl;
+				return true;
+			} else {
+				std::cout << "You don't have enough coins to block!" << std::endl;
+				return false;
+			}
 		}
-
-		void General::undo(Player& o){
-			throw std::runtime_error("This class role undo actions");
-		}
+		
+		return false;
+}

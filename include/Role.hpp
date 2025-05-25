@@ -6,6 +6,7 @@ namespace coup {
         SPY,
         BARON,
         GENERAL,
-        JUDGE
+        JUDGE,
+        MERCHANT
     };
 }

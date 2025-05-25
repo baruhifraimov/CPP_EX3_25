@@ -4,31 +4,25 @@
 
 // if attacked by 'sanction', player who played sanction pays extra 1 coin to treasury
 using namespace coup;
-		
-		 void Judge::gather() {
 
-		 }
+		bool Judge::undo(Player& o){
+			std::cout	<< this->getName() << " (Judge), do you want to block " 
+						<< o.getName() << "'s bribe action? (y/n): ";
 
-		 void Judge::tax() {
-
-		 }
-
-		 void Judge::bribe() {
-
-		 }
-	
-		 void Judge::arrest(Player& o) {
-
-		 }
-	
-		 void Judge::sanction(Player& o)  {
-
-		 }
-		
-		 void Judge::coup(Player& o) {
-
-		 }
-
-		void Judge::undo(Player& o){
+			char response;
+			std::cin >> response;
 			
+			if (response == 'y' || response == 'Y') {
+				// General pays cost to block
+				if (this->coins() >= 5) {
+					this->addCoins(-5);
+					this->getGame().add_coins(5);
+					return true;
+				} else {
+					std::cout << "Judge doesn't have enough coins to block!" << std::endl;
+					return false;
+				}
+			}
+			
+			return false;
 		}

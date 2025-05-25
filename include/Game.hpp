@@ -3,12 +3,15 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "Player.hpp"
+// #include "./players/Player.hpp"
 
 #define MIN_PLAYERS 2
 #define MAX_PLAYERS 6
 
 namespace coup{
+
+class Player;
+
 class Game {
 	private:
 		std::vector<Player*> player_objects; 

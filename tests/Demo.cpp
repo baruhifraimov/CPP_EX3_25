@@ -65,7 +65,7 @@ int main() {
     cout << governor.coins() << endl; // Expected: 2
     cout << spy.coins() << endl; // Expected: 3
 
-    governor.undo(spy); // Governor undo tax
+    governor.block_tax(spy); // Governor undo tax
     cout << spy.coins() << endl; // Expected: 1
 
     baron.tax();

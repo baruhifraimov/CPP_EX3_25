@@ -9,62 +9,26 @@ class General : public Player {
 	
 	public:
 		// Constructor
-		General(Game& game, const std::string& name) : Player(game, name) {}
+		General(Game& game, const std::string& name) : Player(game, name) {
+			this->setRole(Role::GENERAL);
+		}
 
-		/** @brief Player takes 1 coin from treasury
-			* COST: 0
-			* can be disabled by: sanction
-		*/
-		 void gather() override;
-
-		/** @brief Player takes 2 coins from treasury
-			* COST: 0
-			* can be disabled by: certain roles/operations
-		*/		
-		 void tax() override;
-
-		/** @brief Player pays to get an additional action
-			* COST: 2
-			* can be disabled by: NA
-		*/		
-		 void bribe() override;
-
-		/** @brief Player selects a player (not himself) and takes from him 1 coin
-		 	* NOTES: cannot be used twice on the same player in a row
-			* COST: 0
-			* @param o The other player we select
-			* can be disabled by: NA
-		*/		
-		 void arrest(Player& o) override;
-
-		/** @brief Player selects a player (not himself) and disables his (gather,tax) actions until this player next turn
-			* COST: 3
-			* @param o The other player we select
-			* can be disabled by: NA
-		*/		
-		 void sanction(Player& o) override;
-
-		/** * @brief Player selects a player (not himself) and removes him from the game
-			* COST: 7
-			* can be disabled by: certain conditions
-		 	* @param o The other player we select
-		*/		
-		 void coup(Player& o) override;
-		
 		/**
-		 * @brief Prevents player coup (can be himself)
-		 * NOTE: The player that activated coup loses his coins that he paid for the coup op
-		 * COST: 5
-		 * @param o The other player we select
-		 */
-		void preventCoup(Player& o);
-		
-		/**
-		 * @brief General cannot undo roles 
+		 * @brief General's special ability to block a coup action
 		 * 
-		 * @param o The other player that he dreams to undo but he can't
+		 * This method allows a General to intervene and block an attempted coup
+		 * by another player. When called, it prompts the General player for 
+		 * confirmation and, if approved, deducts 5 coins from the General's 
+		 * treasury as the cost of intervention.
+		 * 
+		 * @param attacker The player attempting the coup action
+		 * @param target The player being targeted by the coup
+		 * @return true If the General successfully intervenes (has enough coins and confirms)
+		 * @return false If the General declines to intervene or lacks sufficient coins
+		 * 
 		 */
-		void undo(Player& o) override;
+		bool undo(Player& attacker, Player& target);
+
 
 };
 }
