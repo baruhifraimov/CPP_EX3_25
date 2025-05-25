@@ -41,14 +41,20 @@ std::string Game::winner(){
 }
 
 void Game::registerPlayer(Player* player) {
+	if(player_objects.size() < MAX_PLAYERS){
 	// Only add if not already present
 	for (Player* p : player_objects) {
 		if (p == player) {
 			return;  // Already registered
 		}
 	}
+
 	
 	player_objects.emplace_back(player);
+}
+else{
+	throw std::out_of_range("Maximum number of players reached");
+}
 }
 
 void Game::removePlayer(std::string name){
@@ -87,10 +93,12 @@ void Game::add_coins(int n){
 void Game::next_turn(){
 	this->cur_round+=1;
 	this->index+=1;
-
+	if(player_objects.size() < MIN_PLAYERS){
+		this->winner();
+	}
 	for (int i = 0; i < player_objects.size(); i++)
 	{
-		if(player_objects.at(i)->getName() == this->turn()) {
+		if(player_objects.at(i)->getName() == this->turn() && player_objects.at(i)->getActive()) {
 			player_objects[i]->update_block_timers();
 			if(player_objects.at(i)->IsOver10Coins()){
 				std::cout << *player_objects.at(i)<<" got over 10 coins, must use coup, all other abilities are disabled" << std::endl;
@@ -98,6 +106,11 @@ void Game::next_turn(){
 			// Check if Merchant, if yes -> do special ability
 			if(player_objects.at(i)->getRole() == Role::MERCHANT && player_objects.at(i)->coins() >= 3){
 				player_objects.at(i)->addCoins(1);
+			}
+		}
+		else{
+			if(!player_objects.at(i)->getActive()){
+				throw std::runtime_error(player_objects.at(i)->getName()+" is not active.");
 			}
 		}
 	}
