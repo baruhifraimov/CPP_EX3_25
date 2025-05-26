@@ -9,6 +9,20 @@
 
 using namespace coup;
 
+void Game::start_game() {
+    size_t n = this->player_objects.size();
+    if (n < MIN_PLAYERS || n > MAX_PLAYERS) {
+        throw std::runtime_error(
+            "Game requires between " + std::to_string(MIN_PLAYERS) +
+            " and " + std::to_string(MAX_PLAYERS) +
+            " players; currently " + std::to_string(n)
+        );
+    }
+    // reset turn counters
+    this->cur_round = 0;
+    this->index     = 0;
+}
+
 std::string Game::turn() {
     // Check for empty player list
     if (this->player_objects.empty()) {

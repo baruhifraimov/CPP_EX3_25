@@ -55,6 +55,12 @@ class Game {
 		}
 
 		/**
+		 * @brief Begin play. Must be called once all players have registered.
+		 * @throw std::runtime_error if player count is < MIN_PLAYERS or > MAX_PLAYERS
+		 */
+		void start_game();
+
+		/**
 		 * @brief Prints name of the current player round turn
 		 * @throw If there is no players, throw an error
 		 */
