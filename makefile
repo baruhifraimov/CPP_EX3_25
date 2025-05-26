@@ -11,6 +11,24 @@ TST = ./tests/
 # Create obj directory
 $(shell mkdir -p $(OBJ))
 
+# Rule to compile the SFML GUI main
+$(OBJ)main_sfml.o: src/GUI/main.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# New target for SFML GUI
+Main_sfml:	$(OBJ)main_sfml.o \
+			$(OBJ)Game.o \
+			$(OBJ)Player.o \
+			$(OBJ)Governor.o \
+			$(OBJ)Spy.o \
+			$(OBJ)Baron.o \
+			$(OBJ)General.o \
+			$(OBJ)Judge.o \
+			$(OBJ)Merchant.o
+			$(CXX) $(CXXFLAGS) $^ -o $@ \
+			-lsfml-graphics -lsfml-window -lsfml-system
+
+
 # all: mmain mtest
 
 Main: $(OBJ)Demo.o $(OBJ)Game.o $(OBJ)Player.o $(OBJ)Governor.o $(OBJ)Spy.o $(OBJ)Baron.o $(OBJ)General.o $(OBJ)Judge.o $(OBJ)Merchant.o

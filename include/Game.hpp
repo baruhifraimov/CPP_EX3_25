@@ -33,7 +33,11 @@ class Game {
 
 		}
 		// Destructor
-		~Game() = default;  
+		~Game(){
+			for(auto p : player_objects){
+				delete p;
+				}
+		} 
 
 		// Copy assignment operator
 		Game& operator=(Game& o)
