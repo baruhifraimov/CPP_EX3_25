@@ -173,7 +173,7 @@ using namespace coup;
 		
 		 void Player::coup(Player& o) {
 			this->isMyTurn(); // Check if its my turn
-			if(!IsOver10Coins()){
+			// if(!IsOver10Coins()){
 
 				this->addCoins(-7);
 				current_game->add_coins(7);
@@ -204,10 +204,10 @@ using namespace coup;
 					this->current_game->next_turn(); // next round
 				}
 			}
-			}
-			else{
-				throw std::runtime_error("Coup is disabled, got over or equal to 10 coins, illegal move");
-			}
+			// }
+			// else{
+			// 	throw std::runtime_error("Coup is disabled, got over or equal to 10 coins, illegal move");
+			// }
 		 }
 
 		// void Player::undo(Player& o){

@@ -35,7 +35,7 @@ std::string Game::turn() {
     return player_objects.at(current_index)->getName();
 }
 
-Player& Game::get_current_player() {
+Player* Game::get_current_player() {
     // Check for empty player list
     if (this->player_objects.empty()) {
         throw std::runtime_error("No players in the game");
@@ -44,7 +44,7 @@ Player& Game::get_current_player() {
     // Calculate current player index
     size_t current_index = this->index % this->player_objects.size();
     
-    return *player_objects.at(current_index);
+    return player_objects.at(current_index);
 }
 
 std::vector<std::string> Game::players(){
@@ -207,6 +207,14 @@ std::vector<Player*> Game::get_judges(){
 
 std::vector<Player*> Game::get_players_objects(){
 	return this->player_objects;
+}
+
+void Game::set_target_player(Player& o){
+	this->target_player = &o;
+}
+
+Player& Game::get_target_player(){
+	return *this->target_player;
 }
 
 // bool Game::ask_general_intervention(Player& general, Player& attacker, Player& target){

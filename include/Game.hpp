@@ -16,6 +16,7 @@ class Game {
 		std::vector<Player*> player_objects; 
 		int cur_round,index;
 		int treasury; // coins bank
+		Player* target_player;
 
 	public:
 
@@ -24,12 +25,12 @@ class Game {
 				 player_objects(),
 				 cur_round(0),
 				 index(0),
-				 treasury(6) // default 6 coins (cause 6 players max)
-				 {
+				 treasury(9999), // default 6 coins (cause 6 players max)
+				 target_player(nullptr){
 			
 		}
 		// Copy constructor
-		Game(Game &o) : player_objects(o.player_objects), cur_round(o.cur_round){
+		Game(Game &o) : player_objects(o.player_objects), cur_round(o.cur_round), index(o.index), treasury(o.treasury), target_player(o.target_player){
 
 		}
 		// Destructor
@@ -47,6 +48,7 @@ class Game {
 			this->index = o.index;
 			this->player_objects = o.player_objects;
 			this->treasury = o.treasury;
+			this->target_player = o.target_player;
 
 			
 			return *this;
@@ -184,6 +186,20 @@ class Game {
 		 * 
 		 * @return Player& 
 		 */
-		Player& Game::get_current_player();
+		Player* get_current_player();
+
+		/**
+		 * @brief Set the target player object
+		 * 
+		 * @param o 
+		 */
+		void set_target_player(Player& o);
+
+		/**
+		 * @brief Get the target player object
+		 * 
+		 * @return Player& 
+		 */
+		Player& get_target_player();
 };
 }
