@@ -33,11 +33,7 @@ class Game {
 
 		}
 		// Destructor
-		~Game(){
-			for(auto p : player_objects){
-				delete p;
-				}
-		} 
+		~Game() = default;
 
 		// Copy assignment operator
 		Game& operator=(Game& o)
@@ -48,7 +44,10 @@ class Game {
 			
 			// Copy data
 			this->cur_round = o.cur_round;
+			this->index = o.index;
 			this->player_objects = o.player_objects;
+			this->treasury = o.treasury;
+
 			
 			return *this;
 
@@ -152,6 +151,13 @@ class Game {
 		std::vector<Player*> get_judges();
 
 		/**
+		 * @brief Get the players objects vector
+		 * 
+		 * @return std::vector<Player*> 
+		 */
+		std::vector<Player*> get_players_objects();
+
+		/**
 		 * @brief Ask the general if he wants to intervene in the attack
 		 * 
 		 * @param general 
@@ -171,5 +177,13 @@ class Game {
 		 * @return false 
 		 */
 		bool ask_judge_intervention(Player& judge, Player& attacker);
+		
+		/**
+		 * @brief Getting the current playing player 
+		 * (like turn() but returns a Player object)
+		 * 
+		 * @return Player& 
+		 */
+		Player& Game::get_current_player();
 };
 }

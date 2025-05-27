@@ -35,6 +35,18 @@ std::string Game::turn() {
     return player_objects.at(current_index)->getName();
 }
 
+Player& Game::get_current_player() {
+    // Check for empty player list
+    if (this->player_objects.empty()) {
+        throw std::runtime_error("No players in the game");
+    }
+    
+    // Calculate current player index
+    size_t current_index = this->index % this->player_objects.size();
+    
+    return *player_objects.at(current_index);
+}
+
 std::vector<std::string> Game::players(){
 	std::vector<std::string> names;
     for (Player* player : player_objects) {
@@ -55,7 +67,7 @@ std::string Game::winner(){
 }
 
 void Game::registerPlayer(Player* player) {
-	if(player_objects.size() < MAX_PLAYERS){
+	if(player_objects.size() <= MAX_PLAYERS){
 	// Only add if not already present
 	for (Player* p : player_objects) {
 		if (p == player) {
@@ -191,6 +203,10 @@ std::vector<Player*> Game::get_judges(){
 	}
 	
 	return judges;
+}
+
+std::vector<Player*> Game::get_players_objects(){
+	return this->player_objects;
 }
 
 // bool Game::ask_general_intervention(Player& general, Player& attacker, Player& target){

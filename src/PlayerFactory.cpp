@@ -8,8 +8,8 @@
 // #include "../include/players/Baron.hpp"
 // #include "../include/players/Governor.hpp"
 // #include "../include/players/Spy.hpp"
-using namespace coup;
 
+namespace coup{
 Player& PlayerFactory::create_player(Game& game, const std::string& name, Role role){
 	Player *p = nullptr;
 	switch (role){
@@ -28,9 +28,13 @@ Player& PlayerFactory::create_player(Game& game, const std::string& name, Role r
 		case Role::SPY:
 			p = new Spy(game,name);
 			break;
+		case Role::GENERAL:
+			p = new Spy(game,name);
+			break;
 		default:
-			throw std::invalid_argument("Unknown input");
+			throw std::invalid_argument("Unknown ROLE input");
 	}
 	game.registerPlayer(p);
 	return *p;
+}
 }

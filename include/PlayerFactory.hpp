@@ -12,7 +12,7 @@
 
 namespace coup{
 	class PlayerFactory{
-		
+		public:
 		/**
 		 * @brief Create and register a new Player of the given role.
 		 * @param game  The Game instance to add this player to

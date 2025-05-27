@@ -21,4 +21,6 @@ namespace coup {
             case Role::MERCHANT:    return "MERCHANT";
         }
     }
+
+    
 }

@@ -1,95 +1,89 @@
 # baruh.ifraimov@gmail.com
 CXX = clang++
 CXXFLAGS = -Wall -std=c++17 -ggdb -I$(INC) -I$(PLYR)
+LDFLAGS = 
+SFML_FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 OBJ = ./obj/
 SRC = ./src/
 INC = ./include/
 PLYR = ./include/players/
 PLYR_SRC = ./src/players/
 TST = ./tests/
+GUI = ./src/GUI/
+
+# Object files
+MAIN_OBJS = $(OBJ)Demo.o $(OBJ)Game.o $(OBJ)Player.o $(OBJ)Governor.o $(OBJ)Spy.o $(OBJ)Baron.o $(OBJ)General.o $(OBJ)Judge.o $(OBJ)Merchant.o $(OBJ)PlayerFactory.o
+SFML_OBJS = $(OBJ)main_sfml.o $(OBJ)Window.o $(OBJ)Game.o $(OBJ)Player.o $(OBJ)Governor.o $(OBJ)Spy.o $(OBJ)Baron.o $(OBJ)General.o $(OBJ)Judge.o $(OBJ)Merchant.o $(OBJ)PlayerFactory.o
 
 # Create obj directory
 $(shell mkdir -p $(OBJ))
 
-# Rule to compile the SFML GUI main
-$(OBJ)main_sfml.o: src/GUI/main.cpp
+# Default target
+all: Main
+
+# Main targets
+Main: $(MAIN_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
+
+GUI: $(SFML_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SFML_FLAGS) $^ -o GUI
+
+SFML: $(SFML_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SFML_FLAGS) $^ -o $@
+
+# Pattern rules for cleaner compilation
+$(OBJ)%.o: $(SRC)%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# New target for SFML GUI
-Main_sfml:	$(OBJ)main_sfml.o \
-			$(OBJ)Game.o \
-			$(OBJ)Player.o \
-			$(OBJ)Governor.o \
-			$(OBJ)Spy.o \
-			$(OBJ)Baron.o \
-			$(OBJ)General.o \
-			$(OBJ)Judge.o \
-			$(OBJ)Merchant.o
-			$(CXX) $(CXXFLAGS) $^ -o $@ \
-			-lsfml-graphics -lsfml-window -lsfml-system
-
-
-# all: mmain mtest
-
-Main: $(OBJ)Demo.o $(OBJ)Game.o $(OBJ)Player.o $(OBJ)Governor.o $(OBJ)Spy.o $(OBJ)Baron.o $(OBJ)General.o $(OBJ)Judge.o $(OBJ)Merchant.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-# Compile main source files
-$(OBJ)Demo.o: $(TST)Demo.cpp
+$(OBJ)%.o: $(PLYR_SRC)%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OBJ)Game.o: $(SRC)Game.cpp
+$(OBJ)%.o: $(TST)%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Compile Demo (test file)
-$(OBJ)Demo.o: tests/Demo.cpp
+# Pattern rule for GUI sources
+$(OBJ)%.o: $(GUI)%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Compile player source files
-$(OBJ)Player.o: $(PLYR_SRC)Player.cpp
+# Special rule for SFML GUI
+$(OBJ)main_sfml.o: $(GUI)main.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OBJ)Governor.o: $(PLYR_SRC)Governor.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+# Debug target to check object files
+debug:
+	@echo "Checking object files:"
+	@ls -la $(OBJ)*.o 2>/dev/null || echo "No object files found"
+	@echo "Required files for Main:"
+	@echo $(MAIN_OBJS)
 
-$(OBJ)Spy.o: $(PLYR_SRC)Spy.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(OBJ)Baron.o: $(PLYR_SRC)Baron.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(OBJ)General.o: $(PLYR_SRC)General.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(OBJ)Judge.o: $(PLYR_SRC)Judge.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(OBJ)Merchant.o: $(PLYR_SRC)Merchant.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-
+# Test and utility targets
 test:
-	echo "Running tests..."
+	@echo "Running tests..."
+	./Main
 
-mmain:
-	$()
+run: Main
+	./Main
 
-mtest:
-	echo "Running tests..."
+run-gui: GUI
+	./GUI
 
-.PHONY: Main test valgrind clean all
+run-sfml: SFML
+	./SFML
 
-#make sure to run 'ulimit -n 1024' before running valgrind, thank you
-#
-#--leak-check=full: "each individual leak will be shown in detail"
-#--show-leak-kinds=all: Show all of "definite, indirect, possible, 
-#				reachable" leak kinds in the "full" report.
-#--track-origins=yes: Favor useful output over speed. This tracks 
-#			the origins of uninitialized values, which could be very useful 
-#			for memory errors. Consider turning off if Valgrind is unacceptably slow.
-#
-valgrind:
+# Valgrind target
+valgrind: Main
+	@echo "Make sure to run 'ulimit -n 1024' before running valgrind"
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./Main
 
+# Debug target to check if Player.cpp exists and compiles
+check-player:
+	@echo "Checking Player.cpp:"
+	@ls -la $(PLYR_SRC)Player.cpp 2>/dev/null || echo "Player.cpp not found in $(PLYR_SRC)"
+	@echo "Checking Player.o compilation:"
+	$(CXX) $(CXXFLAGS) -c $(PLYR_SRC)Player.cpp -o $(OBJ)Player_test.o && echo "Player.cpp compiles successfully" || echo "Player.cpp compilation failed"
+
+# Clean target
 clean:
-	rm -rf Main matxTest $(OBJ)
+	rm -rf Main GUI SFML $(OBJ)*.o coup_game
+
+.PHONY: all Main GUI SFML test run run-gui run-sfml valgrind clean debug check-player
