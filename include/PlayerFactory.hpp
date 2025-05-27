@@ -1,14 +1,8 @@
 #pragma once
 
 #include <iostream>
-
-#include "./players/Player.hpp"
-#include "./players/Baron.hpp"
-#include "./players/Governor.hpp"
-#include "./players/Judge.hpp"
-#include "./players/Merchant.hpp"
-#include "./players/Spy.hpp"
-
+#include <Game.hpp>
+#include <Role.hpp>
 
 namespace coup{
 	class PlayerFactory{

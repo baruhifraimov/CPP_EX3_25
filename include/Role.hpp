@@ -2,11 +2,11 @@
 
 namespace coup {
     enum class Role {
-        GOVERNOR,
         GENERAL,
+        JUDGE,
+        GOVERNOR,
         BARON,
         SPY,
-        JUDGE,
         MERCHANT
     };
 

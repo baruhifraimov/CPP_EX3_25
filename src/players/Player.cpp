@@ -70,6 +70,9 @@ using namespace coup;
 
 		 void Player::bribe() {
 			this->isMyTurn(); // Check if its my turn
+			if(this->coins()<4){
+				throw std::runtime_error("Not enough coins to execute Bribe");
+			}
 			if(!IsOver10Coins()){
 
 				this->addCoins(-4);
@@ -138,6 +141,9 @@ using namespace coup;
 	
 		 void Player::sanction(Player& o)  {
 			this->isMyTurn(); // Check if its my turn
+			if(this->coins()<3){
+				throw std::runtime_error("Not enough coins to execute Sanction");
+			}
 			if(!IsOver10Coins()){
 				if(&(*this) == &o){ // check if im trying to sanction my self
 					throw std::runtime_error("Cannot sanction yourself, illegal move");
@@ -174,7 +180,9 @@ using namespace coup;
 		 void Player::coup(Player& o) {
 			this->isMyTurn(); // Check if its my turn
 			// if(!IsOver10Coins()){
-
+				if(this->coins()<7){
+					throw std::runtime_error("Not enough coins to execute Coup");
+				}
 				this->addCoins(-7);
 				current_game->add_coins(7);
 

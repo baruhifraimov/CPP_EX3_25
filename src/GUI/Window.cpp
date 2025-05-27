@@ -15,13 +15,11 @@
 #include <ctime> 
 #include <iostream>
 #include <cstdlib> //for rand()
+#include <random>
 
 using namespace coup;
 
 Window::Window(Game& current_game) : window(sf::VideoMode(800, 600), "COUP Game"), 								current_game(current_game) {
-
-	// Seed the random number generator
-	std::srand(std::time(nullptr));
 	
     if (!font.loadFromFile("./src/GUI/fonts/PressStart2P-Regular.ttf")) {
         std::cerr << "Error: Could not load PressStart2P-Regular.ttf font!" << std::endl;
@@ -166,12 +164,12 @@ void Window::initializeComponents() {
     actionPromptBox.setFillColor(sf::Color::Black);
     actionPromptBox.setOutlineThickness(3);
     actionPromptBox.setOutlineColor(sf::Color::Red);
-    actionPromptBox.setPosition(200, 250);
+	actionPromptBox.setPosition(200, 485);
 
     actionPromptText.setFont(font);
     actionPromptText.setCharacterSize(18);
     actionPromptText.setFillColor(sf::Color::White);
-    actionPromptText.setPosition(220, 275);
+    actionPromptText.setPosition(220, 510);
     actionPromptText.setString("CHOOSE ACTION");
 
 
@@ -464,7 +462,11 @@ void Window::handleEvents() {
 			// 2) ENTER to register one name
 			if (ev.type==sf::Event::KeyPressed && ev.key.code==sf::Keyboard::Enter) {
 				if (!nameInput.empty()) {
-				  Role role = static_cast<Role>(std::rand()%6);
+					static std::random_device rd;
+					static std::mt19937 gen(rd());
+					static std::uniform_int_distribution<int> dis(0, 1);  // 0 to 5 inclusive
+					Role role = static_cast<Role>(dis(gen));
+					std::cout<< to_string(role);
 				  try {
 					PF.create_player(current_game, nameInput, role);
 					std::cout << "Player created successfully!" << std::endl;
@@ -498,104 +500,201 @@ void Window::handleEvents() {
 			continue;
         }
 		else if (screen == Screen::Play){
-			if (ev.type == sf::Event::MouseButtonPressed) {
-				auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
-			 // Check for default action buttons
-			 if (isButtonClicked(gatherButton, mp)) {
-				std::cout << "GATHER action clicked!" << std::endl;
-				errorMessageText.setString("");  // Clear previous error
-				try {
-					// Get current player object and call their gather method
-					Player* currentPlayer = current_game.get_current_player();
-					if (currentPlayer) {
-						currentPlayer->gather();
-						std::cout << "Gather action performed successfully!" << std::endl;
+			   // PREVENT ALL OTHER INTERACTIONS DURING INTERVENTION
+			   if (interventionState != InterventionState::NONE) {
+				// Only handle intervention buttons during intervention
+				if (ev.type == sf::Event::MouseButtonPressed) {
+					auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
+					
+					if (isButtonClicked(yesButton, mp)) {
+                        // Current intervenor wants to block
+                        Player* intervenor = pendingInterventors[currentInterventorIndex];
+                        
+                        try {
+                            if (interventionState == InterventionState::WAITING_GENERAL) {
+                                // General blocks coup - pass true for shouldBlock
+                                if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
+                                    errorMessageText.setString(intervenor->getName() + " (General) blocked the coup!");
+                                    interventionState = InterventionState::NONE;
+                                    return;  // Action blocked, done
+                                }
+                            } else if (interventionState == InterventionState::WAITING_JUDGE) {
+                                // Judge blocks bribe - pass true for shouldBlock
+                                if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
+                                    errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
+                                    interventionState = InterventionState::NONE;
+                                    return;  // Action blocked, done
+                                }
+                            }
+                        } catch (const std::exception& e) {
+                            errorMessageText.setString("Intervention failed: " + std::string(e.what()));
+                        }
+                    }
+					else if (isButtonClicked(noButton, mp)) {
+						// Current intervenor doesn't want to block - pass false for shouldBlock
+						Player* intervenor = pendingInterventors[currentInterventorIndex];
+						
+						if (interventionState == InterventionState::WAITING_GENERAL) {
+							dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, false);
+						} else if (interventionState == InterventionState::WAITING_JUDGE) {
+							dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, false);
+						}
 					}
-				} catch (const std::exception& e) {
-					std::cout << "Gather failed: " << e.what() << std::endl;
-					// Display error on screen
-					errorMessageText.setString("ERROR: " + std::string(e.what()));
-				}
-			}
-			else if (isButtonClicked(taxButton, mp)) {
-				std::cout << "TAX action clicked!" << std::endl;
-				errorMessageText.setString("");  // Clear previous error
-				try {
-					Player* currentPlayer = current_game.get_current_player();
-					if (currentPlayer) {
-						currentPlayer->tax();
-						std::cout << "Tax action performed successfully!" << std::endl;
-					}
-				} catch (const std::exception& e) {
-					std::cout << "Tax failed: " << e.what() << std::endl;
-					errorMessageText.setString("ERROR: " + std::string(e.what()));
-				}
-
-			}
-			else if (isButtonClicked(bribeButton, mp)) {
-				std::cout << "BRIBE action clicked!" << std::endl;
-				errorMessageText.setString("");  // Clear previous error
-				try {
-					Player* currentPlayer = current_game.get_current_player();
-					if (currentPlayer) {
-						currentPlayer->bribe();
-						std::cout << "Bribe action performed successfully!" << std::endl;
-					}
-				} catch (const std::exception& e) {
-					std::cout << "Bribe failed: " << e.what() << std::endl;
-					errorMessageText.setString("ERROR: " + std::string(e.what()));
-				}
-			}
-			else if (isButtonClicked(arrestButton, mp)) {
-				std::cout << "ARREST action clicked!" << std::endl;
-				errorMessageText.setString("");  // Clear previous error
-				
-				// Switch to target selection mode (like sanction and coup)
-				actionState = ActionState::SELECTING_TARGET;
-				pendingAction = "arrest";
-				actionPromptText.setString("CLICK ON A PLAYER TO ARREST");
-			}
-			else if (isButtonClicked(sanctionButton, mp)) {
-				std::cout << "SANCTION action clicked!" << std::endl;
-				errorMessageText.setString("");  // Clear previous error
-				
-				// Switch to target selection mode
-				actionState = ActionState::SELECTING_TARGET;
-				pendingAction = "sanction";
-				actionPromptText.setString("CLICK ON A PLAYER TO SANCTION");
-			}
-			else if (isButtonClicked(coupButton, mp)) {
-				std::cout << "COUP action clicked!" << std::endl;
-				errorMessageText.setString("");  // Clear previous error
-				
-				// Switch to target selection mode
-				actionState = ActionState::SELECTING_TARGET;
-				pendingAction = "coup";
-				actionPromptText.setString("CLICK ON A PLAYER TO COUP");
-
-				
-			}
-			
-			// Role-specific button handling - only if current player has that role
-			if (current_game.get_current_player()) {
-				Role currentRole = current_game.get_current_player()->getRole();
-				
-				// Baron special actions
-				if (currentRole == Role::BARON) {
-					if (isButtonClicked(baronInvestButton, mp)) {
-						std::cout << "Baron INVEST action clicked!" << std::endl;
+					
+					// Move to next intervenor or execute action
+					currentInterventorIndex++;
+					if (currentInterventorIndex >= pendingInterventors.size()) {
+						// No more intervenors, execute the original action
 						try {
-							Player* currentPlayer = current_game.get_current_player();
-							if (currentPlayer) {
-								dynamic_cast<Baron*>(currentPlayer)->invest();
-								std::cout << "Invest action performed successfully!" << std::endl;
+							if (pendingActionType == "coup") {
+								pendingAttacker->coup(*pendingTarget);
+								errorMessageText.setString("COUPED " + pendingTarget->getName());
+							} else if (pendingActionType == "bribe") {
+								pendingAttacker->bribe();
+								errorMessageText.setString("BRIBE SUCCESSFUL");
 							}
 						} catch (const std::exception& e) {
-							std::cout << "Invest failed: " << e.what() << std::endl;
 							errorMessageText.setString("ERROR: " + std::string(e.what()));
+						}
+						interventionState = InterventionState::NONE;
+					} else {
+						// Ask next intervenor
+						Player* nextIntervenor = pendingInterventors[currentInterventorIndex];
+						if (interventionState == InterventionState::WAITING_GENERAL) {
+							interventionPromptText.setString(
+								nextIntervenor->getName() + " (General), do you want to block " +
+								pendingAttacker->getName() + "'s coup on " + pendingTarget->getName() + "?"
+							);
+						} else {
+							interventionPromptText.setString(
+								nextIntervenor->getName() + " (Judge), do you want to block " +
+								pendingAttacker->getName() + "'s bribe?"
+							);
 						}
 					}
 				}
+				// RETURN HERE - don't process any other events during intervention
+				return;
+			}
+
+			// NORMAL GAME PROCESSING - only when not in intervention
+			if (ev.type == sf::Event::MouseButtonPressed) {
+				auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
+				
+				// Check for default action buttons
+				if (isButtonClicked(gatherButton, mp)) {
+					std::cout << "GATHER action clicked!" << std::endl;
+					errorMessageText.setString("");  // Clear previous error
+					try {
+						Player* currentPlayer = current_game.get_current_player();
+						if (currentPlayer) {
+							currentPlayer->gather();
+							std::cout << "Gather action performed successfully!" << std::endl;
+						}
+					} catch (const std::exception& e) {
+						std::cout << "Gather failed: " << e.what() << std::endl;
+						errorMessageText.setString("ERROR: " + std::string(e.what()));
+					}
+				}
+				else if (isButtonClicked(taxButton, mp)) {
+					std::cout << "TAX action clicked!" << std::endl;
+					errorMessageText.setString("");  // Clear previous error
+					try {
+						Player* currentPlayer = current_game.get_current_player();
+						if (currentPlayer) {
+							currentPlayer->tax();
+							std::cout << "Tax action performed successfully!" << std::endl;
+						}
+					} catch (const std::exception& e) {
+						std::cout << "Tax failed: " << e.what() << std::endl;
+						errorMessageText.setString("ERROR: " + std::string(e.what()));
+					}
+				}
+				else if (isButtonClicked(bribeButton, mp)) {
+					std::cout << "BRIBE action clicked!" << std::endl;
+					errorMessageText.setString("");  // Clear previous error
+					Player* attacker = current_game.get_current_player();
+					if (attacker) {
+						// gather all other Judges
+						auto judges = current_game.get_judges();
+						std::vector<Player*> eligibleJudges;
+						for (auto* j : judges) {
+							if (j != attacker) eligibleJudges.push_back(j);
+						}
+
+						if (!eligibleJudges.empty()) {
+							// start Judge intervention
+							interventionState      = InterventionState::WAITING_JUDGE;
+							pendingInterventors    = std::move(eligibleJudges);
+							currentInterventorIndex = 0;
+							pendingAttacker        = attacker;
+							pendingActionType      = "bribe";
+							interventionPromptText.setString(
+								pendingInterventors[0]->getName() +
+								" (Judge), block " + attacker->getName() + "'s bribe?"
+							);
+							return;  // <-- bail out now so we stay in intervention mode
+						} else {
+							// no Judges → execute immediately
+							try {
+								attacker->bribe();
+								std::cout << "Bribe successful" << std::endl;
+								errorMessageText.setString("BRIBE SUCCESSFUL");
+							} catch (const std::exception& e) {
+								std::cout << "Bribe failed: " << e.what() << std::endl;
+								errorMessageText.setString("ERROR: " + std::string(e.what()));
+							}
+						}
+					}
+				}
+				else if (isButtonClicked(arrestButton, mp)) {
+					std::cout << "ARREST action clicked!" << std::endl;
+					errorMessageText.setString("");  // Clear previous error
+					
+					// Switch to target selection mode (like sanction and coup)
+					actionState = ActionState::SELECTING_TARGET;
+					pendingAction = "arrest";
+					actionPromptText.setString("CLICK ON A PLAYER TO ARREST");
+				}
+				else if (isButtonClicked(sanctionButton, mp)) {
+					std::cout << "SANCTION action clicked!" << std::endl;
+					errorMessageText.setString("");  // Clear previous error
+					
+					// Switch to target selection mode
+					actionState = ActionState::SELECTING_TARGET;
+					pendingAction = "sanction";
+					actionPromptText.setString("CLICK ON A PLAYER TO SANCTION");
+				}
+				else if (isButtonClicked(coupButton, mp)) {
+					std::cout << "COUP action clicked!" << std::endl;
+					errorMessageText.setString("");  // Clear previous error
+					
+					// Switch to target selection mode
+					actionState = ActionState::SELECTING_TARGET;
+					pendingAction = "coup";
+					actionPromptText.setString("CLICK ON A PLAYER TO COUP");
+				}
+				
+				// Role-specific buttons
+				if (current_game.get_current_player()) {
+					Role currentRole = current_game.get_current_player()->getRole();
+					
+					if (currentRole == Role::BARON) {
+						if (isButtonClicked(baronInvestButton, mp)) {
+							std::cout << "Baron INVEST action clicked!" << std::endl;
+							try {
+								Player* currentPlayer = current_game.get_current_player();
+								if (currentPlayer) {
+									dynamic_cast<Baron*>(currentPlayer)->invest();
+									std::cout << "Invest action performed successfully!" << std::endl;
+									
+								}
+							} catch (const std::exception& e) {
+								std::cout << "Invest failed: " << e.what() << std::endl;
+								errorMessageText.setString("ERROR: " + std::string(e.what()));
+							}
+						}
+					}
 				    // Spy special actions  
 					else if (currentRole == Role::SPY) {
 						if (isButtonClicked(spyViewCoinsButton, mp)) {
@@ -704,64 +803,63 @@ void Window::handleEvents() {
 								std::cout << "Coup performed on " << current_game.get_target_player().getName() << std::endl;
 								errorMessageText.setString("COUPED " + current_game.get_target_player().getName());
 							}
-							else if (pendingAction == "bribe") {
-								// Check for Judge intervention before executing bribe
-								auto judges = current_game.get_judges();
-								std::vector<Player*> eligibleJudges;
+							// else if (pendingAction == "bribe") {
+							// 	// Check for Judge intervention before executing bribe
+							// 	auto judges = current_game.get_judges();
+							// 	std::vector<Player*> eligibleJudges;
 								
-								// Find judges who can intervene (not the attacker)
-								for (Player* judge : judges) {
-									if (judge != currentPlayer) {
-										eligibleJudges.push_back(judge);
-									}
-								}
+							// 	// Find judges who can intervene (not the attacker)
+							// 	for (Player* judge : judges) {
+							// 		if (judge != currentPlayer) {
+							// 			eligibleJudges.push_back(judge);
+							// 		}
+							// 	}
 								
-								if (!eligibleJudges.empty()) {
-									// Start intervention process
-									interventionState = InterventionState::WAITING_JUDGE;
-									pendingInterventors = eligibleJudges;
-									currentInterventorIndex = 0;
-									pendingAttacker = currentPlayer;
-									pendingActionType = "bribe";
+							// 	if (!eligibleJudges.empty()) {
+							// 		// Start intervention process
+							// 		interventionState = InterventionState::WAITING_JUDGE;
+							// 		pendingInterventors = eligibleJudges;
+							// 		currentInterventorIndex = 0;
+							// 		pendingAttacker = currentPlayer;
+							// 		pendingActionType = "bribe";
 									
-									// Set up intervention prompt
-									interventionPromptText.setString(
-										pendingInterventors[0]->getName() + " (Judge), do you want to block " +
-										pendingAttacker->getName() + "'s bribe?"
-									);
+							// 		// Set up intervention prompt
+							// 		interventionPromptText.setString(
+							// 			pendingInterventors[0]->getName() + " (Judge), do you want to block " +
+							// 			pendingAttacker->getName() + "'s bribe?"
+							// 		);
 									
-									// Don't execute bribe yet - wait for intervention decision
-									actionState = ActionState::CHOOSING_ACTION;
-									actionPromptText.setString("CHOOSE ACTION");
-									pendingAction = "";
-									return;  // Exit without executing bribe
-								}
+							// 		// Don't execute bribe yet - wait for intervention decision
+							// 		actionState = ActionState::CHOOSING_ACTION;
+							// 		actionPromptText.setString("CHOOSE ACTION");
+							// 		pendingAction = "";
+							// 		return;  // Exit without executing bribe
+							// 	}
 								
-								// No eligible judges, execute bribe normally
-								currentPlayer->bribe();
-								std::cout << "Bribe performed successfully!" << std::endl;
-								errorMessageText.setString("BRIBE SUCCESSFUL");
-							}
-							else if (pendingAction == "arrest") {  // ADD THIS SECTION
+							// 	// No eligible judges, execute bribe normally
+							// 	currentPlayer->bribe();
+							// 	std::cout << "Bribe performed successfully!" << std::endl;
+							// 	errorMessageText.setString("BRIBE SUCCESSFUL");
+							// }
+							else if (pendingAction == "arrest") {  
 								currentPlayer->arrest(current_game.get_target_player());  // Pass target player
 								std::cout << "Arrest performed on " << current_game.get_target_player().getName() << std::endl;
 								errorMessageText.setString("ARRESTED " + current_game.get_target_player().getName());
-
 							}
-							else if (pendingAction == "view_coins") {  // ADD THIS
+							else if (pendingAction == "view_coins") { 
 								dynamic_cast<Spy*>(currentPlayer)->view_coins(current_game.get_target_player());
 								std::cout << "View coins performed on " << current_game.get_target_player().getName() << std::endl;
 								errorMessageText.setString("VIEWED COINS OF '" + current_game.get_target_player().getName() +"'\
 								\nNUMBER OF COINS: " + std::to_string(current_game.get_target_player().coins()));
 
 							}
-							else if (pendingAction == "block_arrest") {  // ADD THIS FOR SPY
+							else if (pendingAction == "block_arrest") { 
 								dynamic_cast<Spy*>(currentPlayer)->disable_arrest(current_game.get_target_player());
 								std::cout << "Block arrest performed on " << current_game.get_target_player().getName() << std::endl;
 								errorMessageText.setString("BLOCKED ARREST FOR " + current_game.get_target_player().getName());
 
 							}
-							else if (pendingAction == "block_tax") {  // ADD THIS FOR GOVERNOR
+							else if (pendingAction == "block_tax") {  
 								dynamic_cast<Governor*>(currentPlayer)->block_tax(current_game.get_target_player());
 								std::cout << "Block tax performed on " << current_game.get_target_player().getName() << std::endl;
 								errorMessageText.setString("BLOCKED TAX FOR " + current_game.get_target_player().getName());
@@ -810,15 +908,15 @@ void Window::handleEvents() {
 				
 				try {
 					if (interventionState == InterventionState::WAITING_GENERAL) {
-						// General blocks coup
-						if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget)) {
+						// General blocks coup - pass true for shouldBlock
+						if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
 							errorMessageText.setString(intervenor->getName() + " (General) blocked the coup!");
 							interventionState = InterventionState::NONE;
 							return;  // Action blocked, done
 						}
 					} else if (interventionState == InterventionState::WAITING_JUDGE) {
-						// Judge blocks bribe
-						if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker)) {
+						// Judge blocks bribe - pass true for shouldBlock
+						if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
 							errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
 							interventionState = InterventionState::NONE;
 							return;  // Action blocked, done
@@ -829,8 +927,14 @@ void Window::handleEvents() {
 				}
 			}
 			else if (isButtonClicked(noButton, mp)) {
-				// Current intervenor doesn't want to block
-				// Continue to next intervenor or execute action
+				// Current intervenor doesn't want to block - pass false for shouldBlock
+				Player* intervenor = pendingInterventors[currentInterventorIndex];
+				
+				if (interventionState == InterventionState::WAITING_GENERAL) {
+					dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, false);
+				} else if (interventionState == InterventionState::WAITING_JUDGE) {
+					dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, false);
+				}
 			}
 			
 			// Move to next intervenor or execute action
@@ -868,36 +972,6 @@ void Window::handleEvents() {
 		return;  // Don't process other events during intervention
 		}
 
-
-		// // After each successful action execution, add this check:
-		// try {
-		// 	// Check if game is over (only one player left)
-		// 	if (current_game.get_players_objects().size() <= 1) {
-		// 		winnerName = current_game.winner();  // This will return the winner's name
-		// 		winnerText.setString("WINNER: " + winnerName + "!");
-				
-		// 		// Center the winner text
-		// 		sf::FloatRect tb = winnerText.getLocalBounds();
-		// 		winnerText.setOrigin(tb.left + tb.width/2.f, tb.top + tb.height/2.f);
-		// 		winnerText.setPosition(400, 220);
-				
-		// 		return;  // Exit to prevent further game processing
-		// 	}
-			
-		// 	// If game continues, move to next turn
-		// 	current_game.next_turn();
-			
-		// } catch (const std::exception& e) {
-		// 	// If winner() throws an error, it means game isn't over yet
-		// 	std::cout << "Game continues: " << e.what() << std::endl;
-			
-		// 	// Move to next turn
-		// 	try {
-		// 		current_game.next_turn();
-		// 	} catch (const std::exception& turnError) {
-		// 		errorMessageText.setString("Turn error: " + std::string(turnError.what()));
-		// 	}
-		// }
     }
 	else if (screen == Screen::GameOver) {
 		if (ev.type == sf::Event::MouseButtonPressed) {
@@ -965,45 +1039,65 @@ void Window::render() {
 		auto players = current_game.get_players_objects();
 		// Get the player whose turn it is right now
 		Player* currentPlayer = current_game.get_current_player();
-		
-		// Loop through each player to display them
 		for (size_t i = 0; i < players.size(); ++i) {
-			// Create a new text object for this player's info
 			sf::Text playerInfo;
-			// Use the same font as everything else
 			playerInfo.setFont(font);
-			// Set the text size
 			playerInfo.setCharacterSize(20);
-			
-			// This will hold the text we want to display for this player
-			std::string playerText;
-			
-			// Check if this player is the one whose turn it is
+		
+			// ALWAYS include coin count
+			std::string playerText = players[i]->getName() + " " + to_string(players[i]->getRole()) + " (" + std::to_string(players[i]->coins()) + " coins)";
+		
+			// Highlight current player or show clickable state
 			if (players[i] == currentPlayer) {
-				// This is the current player - highlight them in gold
-				playerInfo.setFillColor(sf::Color(255, 215, 0)); // gold color
-				// Show their name AND coin count: "Alice (3 coins)"
-				playerText = players[i]->getName() + " " + to_string(players[i]->getRole()) + " (" + std::to_string(players[i]->coins()) + " coins)";
+				playerInfo.setFillColor(sf::Color(255,215,0)); // gold
+			} else if (actionState == ActionState::SELECTING_TARGET) {
+				playerInfo.setFillColor(sf::Color::Cyan);
 			} else {
-				// This is NOT the current player - show in white
-				if (actionState == ActionState::SELECTING_TARGET) {
-					// If we're selecting a target, make other players cyan to show they're clickable
-					playerInfo.setFillColor(sf::Color::Cyan);
-				} else {
-					playerInfo.setFillColor(sf::Color::White);
-				}
-				// Only show their name, hide their coins: "Bob"
-				playerText = players[i]->getName();
+				playerInfo.setFillColor(sf::Color::White);
 			}
-			
-			// Set the text content
+		
 			playerInfo.setString(playerText);
-			// Position this player's text on the left side of screen
-			// Each player is 35 pixels below the previous one
 			playerInfo.setPosition(50, 150 + i * 35);
-			// Actually draw this player's text to the screen
 			window.draw(playerInfo);
 		}
+		// // Loop through each player to display them
+		// for (size_t i = 0; i < players.size(); ++i) {
+		// 	// Create a new text object for this player's info
+		// 	sf::Text playerInfo;
+		// 	// Use the same font as everything else
+		// 	playerInfo.setFont(font);
+		// 	// Set the text size
+		// 	playerInfo.setCharacterSize(20);
+			
+		// 	// This will hold the text we want to display for this player
+		// 	std::string playerText;
+			
+		// 	// Check if this player is the one whose turn it is
+		// 	if (players[i] == currentPlayer) {
+		// 		// This is the current player - highlight them in gold
+		// 		playerInfo.setFillColor(sf::Color(255, 215, 0)); // gold color
+		// 		// Show their name AND coin count: "Alice (3 coins)"
+		// 		playerText = players[i]->getName() + " " + to_string(players[i]->getRole()) + " (" + std::to_string(players[i]->coins()) + " coins)";
+		// 	} else {
+		// 		// This is NOT the current player - show in white
+		// 		if (actionState == ActionState::SELECTING_TARGET) {
+		// 			// If we're selecting a target, make other players cyan to show they're clickable
+		// 			playerInfo.setFillColor(sf::Color::Cyan);
+		// 		} else {
+		// 			playerInfo.setFillColor(sf::Color::White);
+		// 		}
+		// 		// Only show their name, hide their coins: "Bob"
+		// 		playerText = players[i]->getName();
+		// 	}
+			
+		// 	// Set the text content
+		// 	playerInfo.setString(playerText);
+		// 	// Position this player's text on the left side of screen
+		// 	// Each player is 35 pixels below the previous one
+		// 	playerInfo.setPosition(50, 150 + i * 35);
+		// 	// Actually draw this player's text to the screen
+		// 	window.draw(playerInfo);
+		// }
 
 		// Draw the action prompt box and text
 		window.draw(actionPromptBox);
@@ -1089,35 +1183,35 @@ bool Window::isButtonClicked(const sf::RectangleShape& button, const sf::Vector2
     return button.getGlobalBounds().contains(mousePos);
 }
 
-void Window::checkGameOver() {
-    try {
-        // Use the game's winner() function to check if there's a winner
-        std::string winner = current_game.winner();
+// void Window::checkGameOver() {
+//     try {
+//         // Use the game's winner() function to check if there's a winner
+//         std::string winner = current_game.winner();
         
-        // If winner() returns successfully, we have a winner!
-        winnerName = winner;
-        winnerText.setString("WINNER: " + winnerName + "!");
+//         // If winner() returns successfully, we have a winner!
+//         winnerName = winner;
+//         winnerText.setString("WINNER: " + winnerName + "!");
         
-        // Center the winner text
-        sf::FloatRect tb = winnerText.getLocalBounds();
-        winnerText.setOrigin(tb.left + tb.width/2.f, tb.top + tb.height/2.f);
-        winnerText.setPosition(400, 220);
+//         // Center the winner text
+//         sf::FloatRect tb = winnerText.getLocalBounds();
+//         winnerText.setOrigin(tb.left + tb.width/2.f, tb.top + tb.height/2.f);
+//         winnerText.setPosition(400, 220);
         
-        screen = Screen::GameOver;
-        std::cout << "Game Over! Winner: " << winnerName << std::endl;
-        return;
+//         screen = Screen::GameOver;
+//         std::cout << "Game Over! Winner: " << winnerName << std::endl;
+//         return;
         
-    } catch (const std::exception& e) {
-        // If winner() throws an exception, it means game isn't over yet
-        std::cout << "Game continues: " << e.what() << std::endl;
+//     } catch (const std::exception& e) {
+//         // If winner() throws an exception, it means game isn't over yet
+//         std::cout << "Game continues: " << e.what() << std::endl;
         
-        // Move to next turn since game continues
-        try {
-            current_game.next_turn();
-            std::cout << "Turn advanced to: " << current_game.turn() << std::endl;
-        } catch (const std::exception& turnError) {
-            std::cout << "Turn error: " << turnError.what() << std::endl;
-            errorMessageText.setString("Turn error: " + std::string(turnError.what()));
-        }
-    }
-}
+//         // Move to next turn since game continues
+//         try {
+//             current_game.next_turn();
+//             std::cout << "Turn advanced to: " << current_game.turn() << std::endl;
+//         } catch (const std::exception& turnError) {
+//             std::cout << "Turn error: " << turnError.what() << std::endl;
+//             errorMessageText.setString("Turn error: " + std::string(turnError.what()));
+//         }
+//     }
+// }

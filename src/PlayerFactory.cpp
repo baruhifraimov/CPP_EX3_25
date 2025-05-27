@@ -1,13 +1,13 @@
 #include <iostream>
 #include "../include/players/Player.hpp"
 #include "../include/PlayerFactory.hpp"
-#include "../include/Role.hpp"
+#include "../include/players/General.hpp"
+#include "../include/players/Judge.hpp"
+#include "../include/players/Baron.hpp"
+#include "../include/players/Governor.hpp"
+#include "../include/players/Spy.hpp"
+#include "../include/players/Merchant.hpp"
 
-// #include "../include/players/General.hpp"
-// #include "../include/players/Judge.hpp"
-// #include "../include/players/Baron.hpp"
-// #include "../include/players/Governor.hpp"
-// #include "../include/players/Spy.hpp"
 
 namespace coup{
 Player& PlayerFactory::create_player(Game& game, const std::string& name, Role role){
@@ -29,7 +29,7 @@ Player& PlayerFactory::create_player(Game& game, const std::string& name, Role r
 			p = new Spy(game,name);
 			break;
 		case Role::GENERAL:
-			p = new Spy(game,name);
+			p = new General(game,name);
 			break;
 		default:
 			throw std::invalid_argument("Unknown ROLE input");

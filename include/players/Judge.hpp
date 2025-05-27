@@ -22,9 +22,10 @@ class Judge : public Player {
 		* to pay an additional coin to the treasury as a penalty.
 		* 
 		* @param o The player attempting the bribe action
+		* @param shouldBlock default is false, if true the judge will block
 		* @return true If the Judge successfully blocks the bribe
 		* @return false If the Judge declines to intervene
 		*/
-		bool undo(Player& o);
+   		bool undo(Player& o, bool shouldBlock = false);
 };
 }

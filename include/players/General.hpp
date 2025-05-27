@@ -23,11 +23,12 @@ class General : public Player {
 		 * 
 		 * @param attacker The player attempting the coup action
 		 * @param target The player being targeted by the coup
+		 * @param shouldBlock default is false, if true the judge will block
 		 * @return true If the General successfully intervenes (has enough coins and confirms)
 		 * @return false If the General declines to intervene or lacks sufficient coins
 		 * 
 		 */
-		bool undo(Player& attacker, Player& target);
+		bool undo(Player& attacker, Player& target, bool shouldBlock = false);
 
 
 };
