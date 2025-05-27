@@ -3,9 +3,9 @@
 namespace coup {
     enum class Role {
         GOVERNOR,
-        SPY,
-        BARON,
         GENERAL,
+        BARON,
+        SPY,
         JUDGE,
         MERCHANT
     };
