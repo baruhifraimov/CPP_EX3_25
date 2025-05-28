@@ -1,19 +1,31 @@
 # baruh.ifraimov@gmail.com
+
+# Basic Setup
 CXX = clang++
 CXXFLAGS = -Wall -std=c++17 -ggdb -I$(INC) -I$(PLYR)
 LDFLAGS = 
 SFML_FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+
+# Regular folders
 OBJ = ./obj/
 SRC = ./src/
 INC = ./include/
+
+# Player Setup
 PLYR = ./include/players/
 PLYR_SRC = ./src/players/
+
+# Test folder
 TST = ./tests/
+
+# GUI folder<SFML>
 GUI = ./src/GUI/
 
 # Object files
 MAIN_OBJS = $(OBJ)Demo.o $(OBJ)Game.o $(OBJ)Player.o $(OBJ)Governor.o $(OBJ)Spy.o $(OBJ)Baron.o $(OBJ)General.o $(OBJ)Judge.o $(OBJ)Merchant.o $(OBJ)PlayerFactory.o
 SFML_OBJS = $(OBJ)main_sfml.o $(OBJ)Window.o $(OBJ)Game.o $(OBJ)Player.o $(OBJ)Governor.o $(OBJ)Spy.o $(OBJ)Baron.o $(OBJ)General.o $(OBJ)Judge.o $(OBJ)Merchant.o $(OBJ)PlayerFactory.o
+TST_OBJS = $(OBJ)coup_test.o $(OBJ)Game.o $(OBJ)Player.o $(OBJ)Governor.o $(OBJ)Spy.o $(OBJ)Baron.o $(OBJ)General.o $(OBJ)Judge.o $(OBJ)Merchant.o $(OBJ)PlayerFactory.o
+TST_HDRS = $(INC)doctest.h $(INC)Game.hpp $(PLYR)Player.hpp $(PLYR)Governor.hpp $(PLYR)Spy.hpp $(PLYR)Baron.hpp $(PLYR)General.hpp $(PLYR)Judge.hpp $(PLYR)Merchant.hpp $(INC)PlayerFactory.hpp $(INC)Operations.hpp $(INC)Role.hpp
 
 # Create obj directory
 $(shell mkdir -p $(OBJ))
@@ -25,11 +37,7 @@ all: Main
 Main: $(MAIN_OBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
 
-GUI: $(SFML_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SFML_FLAGS) $^ -o GUI
 
-SFML: $(SFML_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SFML_FLAGS) $^ -o $@
 
 # Pattern rules for cleaner compilation
 $(OBJ)%.o: $(SRC)%.cpp
@@ -38,8 +46,15 @@ $(OBJ)%.o: $(SRC)%.cpp
 $(OBJ)%.o: $(PLYR_SRC)%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OBJ)%.o: $(TST)%.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+#========================================================================#
+#   		                 GUI 	  RULE                               #
+#========================================================================#
+
+GUI: $(SFML_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SFML_FLAGS) $^ -o GUI
+
+SFML: $(SFML_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SFML_FLAGS) $^ -o $@
 
 # Pattern rule for GUI sources
 $(OBJ)%.o: $(GUI)%.cpp
@@ -49,38 +64,35 @@ $(OBJ)%.o: $(GUI)%.cpp
 $(OBJ)main_sfml.o: $(GUI)main.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Debug target to check object files
-debug:
-	@echo "Checking object files:"
-	@ls -la $(OBJ)*.o 2>/dev/null || echo "No object files found"
-	@echo "Required files for Main:"
-	@echo $(MAIN_OBJS)
+#========================================================================#
+#   		                 TEST 	 RULE                                #
+#========================================================================#
 
-# Test and utility targets
-test:
+# Test file rule
+$(OBJ)coup_test.o: $(TST)coup_test.cpp $(TST_HDRS)
+	mkdir -p $(OBJ)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)%.o: $(TST)%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Build and run tests
+test: TestRunner
 	@echo "Running tests..."
-	./Main
 
-run: Main
-	./Main
+# Test executable
+TestRunner: $(TST_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
 
-run-gui: GUI
-	./GUI
 
-run-sfml: SFML
-	./SFML
+
+
+
 
 # Valgrind target
 valgrind: Main
 	@echo "Make sure to run 'ulimit -n 1024' before running valgrind"
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./Main
-
-# Debug target to check if Player.cpp exists and compiles
-check-player:
-	@echo "Checking Player.cpp:"
-	@ls -la $(PLYR_SRC)Player.cpp 2>/dev/null || echo "Player.cpp not found in $(PLYR_SRC)"
-	@echo "Checking Player.o compilation:"
-	$(CXX) $(CXXFLAGS) -c $(PLYR_SRC)Player.cpp -o $(OBJ)Player_test.o && echo "Player.cpp compiles successfully" || echo "Player.cpp compilation failed"
 
 # Clean target
 clean:

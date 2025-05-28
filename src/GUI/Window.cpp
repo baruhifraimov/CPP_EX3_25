@@ -771,7 +771,6 @@ if (interventionState != InterventionState::NONE) {
 							} else {
 								// no Judges → bribe already executed, just show success
 								setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
-								// Don't call next_turn() - player gets another turn
 							}
 						} catch (const std::exception& e) {
 							std::cout << "Bribe failed: " << e.what() << std::endl;
@@ -801,6 +800,10 @@ if (interventionState != InterventionState::NONE) {
 					std::cout << "COUP action clicked!" << std::endl;
 					setErrorMessage(errorMessageText, "");  // Clear previous error
 					
+					    
+					// Reset the general intervention flag at the start of each new coup attempt
+					current_game->set_general_intervention(false);
+
 					// Switch to target selection mode
 					actionState = ActionState::SELECTING_TARGET;
 					pendingAction = "coup";
