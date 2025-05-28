@@ -24,7 +24,7 @@ using namespace coup;
 			this->isMyTurn(); // Check if its my turn
 			if(!IsOver10Coins()){
 				if(is_operation_blocked(Operation::GATHER)){
-					throw std::runtime_error("Player is under sanction, illegal move");
+					throw std::runtime_error("Player Gather is blocked, illegal move");
 				}
 				this->current_game->add_coins(-1);
 				this->addCoins(1);
@@ -45,7 +45,7 @@ using namespace coup;
 			this->isMyTurn(); // Check if its my turn
 			if(!IsOver10Coins()){
 				if(is_operation_blocked(Operation::TAX)){
-					throw std::runtime_error("Player is under sanction, illegal move");
+					throw std::runtime_error("Player Tax is blocked, illegal move");
 				}
 				if(this->player_role == Role::GOVERNOR){
 					this->current_game->add_coins(-3);
@@ -127,13 +127,13 @@ using namespace coup;
 					this->addCoins(1);
 				}
 
-				if (is_operation_blocked(Operation::EXTRA_TURN))
-				{
-					unblock_operation(Operation::EXTRA_TURN);
-				}
-				else{
-					this->current_game->next_turn(); // next round
-				}
+				// if (is_operation_blocked(Operation::EXTRA_TURN))
+				// {
+				// 	unblock_operation(Operation::EXTRA_TURN);
+				// }
+				// else{
+				// 	this->current_game->next_turn(); // next round
+				// }
 			}
 			else{
 				throw std::runtime_error("Arrest is disabled, got over or equal to 10 coins, illegal move");
@@ -180,12 +180,16 @@ using namespace coup;
 		
 		 void Player::coup(Player& o) {
             this->isMyTurn(); // Check if its my turn
-            if(this->coins()<7){
-                throw std::runtime_error("Not enough coins to execute Coup");
-            }
 
-            this->addCoins(-7); // Always deduct coins for attempting coup
-            current_game->add_coins(7); // Coins go to treasury or are just removed
+			//NOTED BECAUSE WE USE THE GUI TO PAY THROUGH THE PLAYER
+
+            // if(this->coins()<7){
+            //     throw std::runtime_error("Not enough coins to execute Coup");
+            // }
+            // this->addCoins(-7); // Always deduct coins for attempting coup
+            // current_game->add_coins(7); // Coins go to treasury or are just removed
+
+			// Check if im couping my self
 
             // Check if a general intervention has ALREADY been flagged as successful
             if(current_game->get_general_intervention()){
@@ -299,10 +303,13 @@ using namespace coup;
 			}
 		}
 
-		void Player::pay_coup_cost() {
+		void Player::pay_coup_cost(Player& target) {
 			this->isMyTurn(); // Ensure it's the player's turn
 			if (this->coins() < 7) {
 				throw std::runtime_error("Not enough coins (need 7) to attempt Coup");
+			}
+			else if(this == &target){
+				throw std::runtime_error("Cannot coup yourself!");
 			}
 			this->addCoins(-7);         // Deduct cost from player
 			current_game->add_coins(7); // Add coins to treasury (or however it's handled)

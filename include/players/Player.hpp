@@ -254,8 +254,10 @@ class Player{
          * or if it's not their turn.
 		 * 
 		 * THIS ADDED ONLY FOR THE WINDOW.HPP GUI, THE GUI GIVES PROBLEMS WHEN TRYING TO PAY COUP
+		 * 
+		 * @param target The target that we want to
          */
-        void pay_coup_cost();
+        void pay_coup_cost(Player& target);
 
 	// Protected methods, hidden from the public
 	protected:

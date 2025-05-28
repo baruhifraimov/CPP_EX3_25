@@ -540,7 +540,7 @@ void Window::handleEvents() {
 					static std::random_device rd;
 					static std::mt19937 gen(rd());
 					// DEBUG
-					static std::uniform_int_distribution<int> dis(0, 1);  // 0 to 5 inclusive
+					static std::uniform_int_distribution<int> dis(0, 5);  // 0 to 5 inclusive
 					Role role = static_cast<Role>(dis(gen));
 					std::cout<< to_string(role);
 				  try {
@@ -594,7 +594,7 @@ void Window::handleEvents() {
                             if (interventionState == InterventionState::WAITING_GENERAL) {
                                 if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
                                     current_game->set_general_intervention(true); // IMPORTANT: Set flag
-                                    errorMessageText.setString(intervenor->getName() + " (General) blocked the coup!");
+                                    setErrorMessage(errorMessageText, intervenor->getName() + " (General) blocked the coup!");
                                     interventionState = InterventionState::NONE;
                                     current_game->next_turn(); // Coup attempt (blocked) consumes the turn
                                     return;  // Action blocked and handled.
@@ -602,14 +602,14 @@ void Window::handleEvents() {
                             } else if (interventionState == InterventionState::WAITING_JUDGE) {
                                 if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
                                     current_game->set_judge_intervention(true); // IMPORTANT: Set flag
-                                    errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
+                                    setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
                                     interventionState = InterventionState::NONE;
                                     current_game->next_turn(); // Bribe attempt (blocked) consumes the turn
                                     return;  // Action blocked and handled.
                                 }
                             }
                         } catch (const std::exception& e) {
-                            errorMessageText.setString("Intervention failed: " + std::string(e.what()));
+                            setErrorMessage(errorMessageText, "Intervention failed: " + std::string(e.what()));
                             // If intervention itself fails, ensure flags are not incorrectly true
                             if (interventionState == InterventionState::WAITING_GENERAL) current_game->set_general_intervention(false);
                             if (interventionState == InterventionState::WAITING_JUDGE) current_game->set_judge_intervention(false);
@@ -636,14 +636,14 @@ void Window::handleEvents() {
                                 // general_intervention flag is false, Player::coup will proceed with elimination.
                                 pendingAttacker->coup(*pendingTarget);
                                 // Message might be redundant if Player::coup handles its own state or turn changes view
-                                errorMessageText.setString("COUPED " + pendingTarget->getName());
+                                setErrorMessage(errorMessageText, "COUPED " + pendingTarget->getName());
                             } else if (pendingActionType == "bribe") {
                                 // judge_intervention flag is false.
                                 pendingAttacker->bribe(); // Player::bribe should also check its flag
-                                errorMessageText.setString("BRIBE SUCCESSFUL - EXTRA TURN");
+                                setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
                             }
                         } catch (const std::exception& e) {
-                            errorMessageText.setString("ERROR: " + std::string(e.what()));
+                            setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
                         }
                         interventionState = InterventionState::NONE;
                     } else {
@@ -685,13 +685,13 @@ void Window::handleEvents() {
             actionState = ActionState::CHOOSING_ACTION;
             setActionPrompt("CHOOSE ACTION");
             pendingAction = "";
-            errorMessageText.setString("Previous action canceled");
+            setErrorMessage(errorMessageText, "Previous action canceled");
         }
     }
 				// Check for default action buttons
 				if (isButtonClicked(gatherButton, mp)) {
 					std::cout << "GATHER action clicked!" << std::endl;
-					errorMessageText.setString("");  // Clear previous error
+					setErrorMessage(errorMessageText, "");  // Clear previous error
 					try {
 						Player* currentPlayer = current_game->get_current_player();
 						if (currentPlayer) {
@@ -700,12 +700,12 @@ void Window::handleEvents() {
 						}
 					} catch (const std::exception& e) {
 						std::cout << "Gather failed: " << e.what() << std::endl;
-						errorMessageText.setString("ERROR: " + std::string(e.what()));
+						setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
 					}
 				}
 				else if (isButtonClicked(taxButton, mp)) {
 					std::cout << "TAX action clicked!" << std::endl;
-					errorMessageText.setString("");  // Clear previous error
+					setErrorMessage(errorMessageText, "");  // Clear previous error
 					try {
 						Player* currentPlayer = current_game->get_current_player();
 						if (currentPlayer) {
@@ -714,12 +714,12 @@ void Window::handleEvents() {
 						}
 					} catch (const std::exception& e) {
 						std::cout << "Tax failed: " << e.what() << std::endl;
-						errorMessageText.setString("ERROR: " + std::string(e.what()));
+						setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
 					}
 				}
 				else if (isButtonClicked(bribeButton, mp)) {
 					std::cout << "BRIBE action clicked!" << std::endl;
-					errorMessageText.setString("");  // Clear previous error
+					setErrorMessage(errorMessageText, "");  // Clear previous error
 					Player* attacker = current_game->get_current_player();
 					if (attacker) {
 						// Execute bribe immediately to deduct coins
@@ -749,18 +749,18 @@ void Window::handleEvents() {
 								return;  // bail out now so we stay in intervention mode
 							} else {
 								// no Judges → bribe already executed, just show success
-								errorMessageText.setString("BRIBE SUCCESSFUL - EXTRA TURN");
+								setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
 								// Don't call next_turn() - player gets another turn
 							}
 						} catch (const std::exception& e) {
 							std::cout << "Bribe failed: " << e.what() << std::endl;
-							errorMessageText.setString("ERROR: " + std::string(e.what()));
+							setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
 						}
 					}
 				}
 				else if (isButtonClicked(arrestButton, mp)) {
 					std::cout << "ARREST action clicked!" << std::endl;
-					errorMessageText.setString("");  // Clear previous error
+					setErrorMessage(errorMessageText, "");  // Clear previous error
 					
 					// Switch to target selection mode (like sanction and coup)
 					actionState = ActionState::SELECTING_TARGET;
@@ -769,7 +769,7 @@ void Window::handleEvents() {
 				}
 				else if (isButtonClicked(sanctionButton, mp)) {
 					std::cout << "SANCTION action clicked!" << std::endl;
-					errorMessageText.setString("");  // Clear previous error
+					setErrorMessage(errorMessageText, "");  // Clear previous error
 					
 					// Switch to target selection mode
 					actionState = ActionState::SELECTING_TARGET;
@@ -778,7 +778,7 @@ void Window::handleEvents() {
 				}
 				else if (isButtonClicked(coupButton, mp)) {
 					std::cout << "COUP action clicked!" << std::endl;
-					errorMessageText.setString("");  // Clear previous error
+					setErrorMessage(errorMessageText, "");  // Clear previous error
 					
 					// Switch to target selection mode
 					actionState = ActionState::SELECTING_TARGET;
@@ -802,7 +802,7 @@ void Window::handleEvents() {
 								}
 							} catch (const std::exception& e) {
 								std::cout << "Invest failed: " << e.what() << std::endl;
-								errorMessageText.setString("ERROR: " + std::string(e.what()));
+								setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
 							}
 						}
 					}
@@ -810,7 +810,7 @@ void Window::handleEvents() {
 					else if (currentRole == Role::SPY) {
 						if (isButtonClicked(spyViewCoinsButton, mp)) {
 							std::cout << "Spy VIEW COINS action clicked!" << std::endl;
-							errorMessageText.setString("");  // Clear previous error
+							setErrorMessage(errorMessageText, "");  // Clear previous error
 							
 							// Switch to target selection mode for view coins
 							actionState = ActionState::SELECTING_TARGET;
@@ -819,7 +819,7 @@ void Window::handleEvents() {
 						}
 						else if (isButtonClicked(spyBlockArrestButton, mp)) {
 							std::cout << "Spy BLOCK ARREST action clicked!" << std::endl;
-							errorMessageText.setString("");  // Clear previous error
+							setErrorMessage(errorMessageText, "");  // Clear previous error
 							
 							// Switch to target selection mode for block arrest
 							actionState = ActionState::SELECTING_TARGET;
@@ -831,7 +831,7 @@ void Window::handleEvents() {
 					else if (currentRole == Role::GOVERNOR) {
 						 if (isButtonClicked(governorBlockTaxButton, mp)) {
 							std::cout << "Governor BLOCK TAX action clicked!" << std::endl;
-							errorMessageText.setString("");  // Clear previous error
+							setErrorMessage(errorMessageText, "");  // Clear previous error
 							
 							// Switch to target selection mode for block tax
 							actionState = ActionState::SELECTING_TARGET;
@@ -861,7 +861,7 @@ void Window::handleEvents() {
 						
 						// // Can't target yourself (for most actions)
 						// if (targetPlayer == currentPlayer && (pendingAction == "sanction" || pendingAction == "coup")) {
-						// 	errorMessageText.setString("ERROR: Cannot target yourself!");
+						// 	setErrorMessage(errorMessageText, "ERROR: Cannot target yourself!");
 						// 	actionState = ActionState::CHOOSING_ACTION;
 						// 	actionPromptText.setString("CHOOSE ACTION");
 						// 	pendingAction = "";
@@ -873,19 +873,18 @@ void Window::handleEvents() {
 							if (pendingAction == "sanction") {
 								currentPlayer->sanction(current_game->get_target_player());  // Pass target player
 								std::cout << "Sanction performed on " << current_game->get_target_player().getName() << std::endl;
-								errorMessageText.setString("SANCTIONED " + current_game->get_target_player().getName());
+								setErrorMessage(errorMessageText, "SANCTIONED " + current_game->get_target_player().getName());
 							}
 							
 							else if (pendingAction == "coup") {
-                                Player* currentPlayer = current_game->get_current_player();
                                 if (!currentPlayer) { /* Should not happen if logic is correct */ return; }
 
                                 // Attempt to pay the coup cost immediately
                                 try {
-                                    currentPlayer->pay_coup_cost(); // DEDUCTS COINS NOW
+                                    currentPlayer->pay_coup_cost(current_game->get_target_player()); // DEDUCTS COINS NOW
                                 } catch (const std::exception& e_cost) {
                                     std::cout << "Coup attempt failed (cost): " << e_cost.what() << std::endl;
-                                    errorMessageText.setString("ERROR: " + std::string(e_cost.what()));
+                                    setErrorMessage(errorMessageText, "ERROR: " + std::string(e_cost.what()));
                                     actionState = ActionState::CHOOSING_ACTION; // Reset state
                                     setActionPrompt("CHOOSE ACTION");
                                     pendingAction = "";
@@ -927,10 +926,10 @@ void Window::handleEvents() {
                                     try {
                                         currentPlayer->coup(current_game->get_target_player());
                                         std::cout << "Coup performed on " << current_game->get_target_player().getName() << std::endl;
-                                        errorMessageText.setString("COUPED " + current_game->get_target_player().getName());
+                                        setErrorMessage(errorMessageText, "COUPED " + current_game->get_target_player().getName());
                                     } catch (const std::exception& e) {
                                         std::cout << "Coup failed: " << e.what() << std::endl;
-                                        errorMessageText.setString("ERROR: " + std::string(e.what()));
+                                        setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
                                     }
                                     // Reset state after action
                                     actionState = ActionState::CHOOSING_ACTION;
@@ -974,30 +973,30 @@ void Window::handleEvents() {
 							// 	// No eligible judges, execute bribe normally
 							// 	currentPlayer->bribe();
 							// 	std::cout << "Bribe performed successfully!" << std::endl;
-							// 	errorMessageText.setString("BRIBE SUCCESSFUL");
+							// 	setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL");
 							// }
 							else if (pendingAction == "arrest") {  
 								currentPlayer->arrest(current_game->get_target_player());  // Pass target player
 								std::cout << "Arrest performed on " << current_game->get_target_player().getName() << std::endl;
-								errorMessageText.setString("ARRESTED " + current_game->get_target_player().getName());
+								setErrorMessage(errorMessageText, "ARRESTED " + current_game->get_target_player().getName());
 							}
 							else if (pendingAction == "view_coins") { 
 								dynamic_cast<Spy*>(currentPlayer)->view_coins(current_game->get_target_player());
 								std::cout << "View coins performed on " << current_game->get_target_player().getName() << std::endl;
-								errorMessageText.setString("VIEWED COINS OF '" + current_game->get_target_player().getName() +"'\
+								setErrorMessage(errorMessageText, "VIEWED COINS OF '" + current_game->get_target_player().getName() +"'\
 								\nNUMBER OF COINS: " + std::to_string(current_game->get_target_player().coins()));
 
 							}
 							else if (pendingAction == "block_arrest") { 
 								dynamic_cast<Spy*>(currentPlayer)->disable_arrest(current_game->get_target_player());
 								std::cout << "Block arrest performed on " << current_game->get_target_player().getName() << std::endl;
-								errorMessageText.setString("BLOCKED ARREST FOR " + current_game->get_target_player().getName());
+								setErrorMessage(errorMessageText, "BLOCKED ARREST FOR " + current_game->get_target_player().getName());
 
 							}
 							else if (pendingAction == "block_tax") {  
 								dynamic_cast<Governor*>(currentPlayer)->block_tax(current_game->get_target_player());
 								std::cout << "Block tax performed on " << current_game->get_target_player().getName() << std::endl;
-								errorMessageText.setString("BLOCKED TAX FOR " + current_game->get_target_player().getName());
+								setErrorMessage(errorMessageText, "BLOCKED TAX FOR " + current_game->get_target_player().getName());
 
 							}
 							
@@ -1008,7 +1007,7 @@ void Window::handleEvents() {
 							
 						} catch (const std::exception& e) {
 							std::cout << pendingAction << " failed: " << e.what() << std::endl;
-							errorMessageText.setString("ERROR: " + std::string(e.what()));
+							setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
 							
 							// Reset to normal action selection
 							actionState = ActionState::CHOOSING_ACTION;
@@ -1028,7 +1027,7 @@ void Window::handleEvents() {
 				actionState = ActionState::CHOOSING_ACTION;
 				setActionPrompt("CHOOSE ACTION");
 				pendingAction = "";
-				errorMessageText.setString("Action cancelled");
+				setErrorMessage(errorMessageText, "Action cancelled");
 			}
 		}
 
@@ -1043,7 +1042,7 @@ void Window::handleEvents() {
 					if (interventionState == InterventionState::WAITING_GENERAL) {
 						if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
 							current_game->set_general_intervention(true); // IMPORTANT: Set flag
-							errorMessageText.setString(intervenor->getName() + " (General) blocked the coup!");
+							setErrorMessage(errorMessageText, intervenor->getName() + " (General) blocked the coup!");
 							interventionState = InterventionState::NONE;
 							current_game->next_turn(); // Coup attempt (blocked) consumes the turn
 							return;  // Action blocked and handled.
@@ -1051,14 +1050,14 @@ void Window::handleEvents() {
 					} else if (interventionState == InterventionState::WAITING_JUDGE) {
 						if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
 							current_game->set_judge_intervention(true); // IMPORTANT: Set flag
-							errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
+							setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
 							interventionState = InterventionState::NONE;
 							current_game->next_turn(); // Bribe attempt (blocked) consumes the turn
 							return;  // Action blocked and handled.
 						}
 					}
 				} catch (const std::exception& e) {
-					errorMessageText.setString("Intervention failed: " + std::string(e.what()));
+					setErrorMessage(errorMessageText, "Intervention failed: " + std::string(e.what()));
 					// If intervention itself fails, ensure flags are not incorrectly true
 					if (interventionState == InterventionState::WAITING_GENERAL) current_game->set_general_intervention(false);
 					if (interventionState == InterventionState::WAITING_JUDGE) current_game->set_judge_intervention(false);
@@ -1085,14 +1084,14 @@ void Window::handleEvents() {
 						// general_intervention flag is false, Player::coup will proceed with elimination.
 						pendingAttacker->coup(*pendingTarget);
 						// Message might be redundant if Player::coup handles its own state or turn changes view
-						errorMessageText.setString("COUPED " + pendingTarget->getName());
+						setErrorMessage(errorMessageText, "COUPED " + pendingTarget->getName());
 					} else if (pendingActionType == "bribe") {
 						// judge_intervention flag is false.
 						pendingAttacker->bribe(); // Player::bribe should also check its flag
-						errorMessageText.setString("BRIBE SUCCESSFUL - EXTRA TURN");
+						setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
 					}
 				} catch (const std::exception& e) {
-					errorMessageText.setString("ERROR: " + std::string(e.what()));
+					setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
 				}
 				interventionState = InterventionState::NONE;
 			} else {
@@ -1456,7 +1455,7 @@ void Window::resetGame() {
     pendingTarget = nullptr;
     
     // Reset text displays
-    errorMessageText.setString("");
+    setErrorMessage(errorMessageText, "");
     setActionPrompt("CHOOSE ACTION");
     
     // Change the screen
@@ -1482,4 +1481,41 @@ void Window::fitTextInButton(sf::Text& text, const sf::RectangleShape& button) {
         // Re-center with the new size
         centerTextInButton(text, button);
     }
+}
+
+void Window::setErrorMessage(sf::Text& errorText, const std::string& message) {
+    // Set the text
+    errorText.setString(message);
+    
+    // Reset font size to default
+    errorText.setCharacterSize(20);
+    
+    // Get text bounds to check if it's too wide
+    sf::FloatRect textBounds = errorText.getLocalBounds();
+    float maxWidth = window.getSize().x - 100; // 50px padding on each side
+    
+    // If text is too wide, reduce the font size
+    if (textBounds.width > maxWidth) {
+        int newSize = 20;
+        while (textBounds.width > maxWidth && newSize > 10) {
+            newSize -= 2;
+            errorText.setCharacterSize(newSize);
+            textBounds = errorText.getLocalBounds();
+        }
+        
+        // If still too wide at smallest font size, truncate with ellipsis
+        if (textBounds.width > maxWidth) {
+            std::string truncated = message;
+            while (textBounds.width > maxWidth && truncated.length() > 3) {
+                truncated = truncated.substr(0, truncated.length() - 4) + "...";
+                errorText.setString(truncated);
+                textBounds = errorText.getLocalBounds();
+            }
+        }
+    }
+    
+    // Re-center the text
+    textBounds = errorText.getLocalBounds();
+    errorText.setOrigin(textBounds.left + textBounds.width/2.f, textBounds.top + textBounds.height/2.f);
+    errorText.setPosition(window.getSize().x/2.f, errorText.getPosition().y);
 }

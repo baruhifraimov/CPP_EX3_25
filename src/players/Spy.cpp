@@ -9,10 +9,12 @@ using namespace coup;
 					  << p.num_coins << " coins" << std::endl;
 		}
 
-		void Spy::disable_arrest(Player &p){
+		void Spy::disable_arrest(Player &o){
 			this->isMyTurn(); // Check if its my turn
 			if(!IsOver10Coins()){
-				
+				// Block the target's TAX operation using the existing mechanism
+				o.block_operation_with_timer(Operation::ARREST);
+		
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);

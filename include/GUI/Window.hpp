@@ -191,6 +191,17 @@ private:
      */
     void fitTextInButton(sf::Text& text, const sf::RectangleShape& button);
 
+    /**
+     * @brief  sets an error message for a Window object by 
+     * updating the provided sf::Text object with the specified string message. 
+     * It takes a reference to an sf::Text object and a constant 
+     * reference to a std::string as parameters.
+     * 
+     * @param errorText 
+     * @param message 
+     */
+    void setErrorMessage(sf::Text& errorText, const std::string& message);
+
 public:
     Window(Game& current_game);
     ~Window();
