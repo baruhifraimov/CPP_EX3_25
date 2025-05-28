@@ -600,14 +600,14 @@ void Window::handleEvents() {
                                     return;  // Action blocked and handled.
                                 }
                             } else if (interventionState == InterventionState::WAITING_JUDGE) {
-                                if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
-                                    current_game->set_judge_intervention(true); // IMPORTANT: Set flag
-                                    setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
-                                    interventionState = InterventionState::NONE;
-                                    current_game->next_turn(); // Bribe attempt (blocked) consumes the turn
-                                    return;  // Action blocked and handled.
-                                }
-                            }
+								if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
+									current_game->set_judge_intervention(true); // IMPORTANT: Set flag
+									setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
+									interventionState = InterventionState::NONE;
+									current_game->next_turn(); // REPLACE bribe() call with just advancing turn
+									return;  // Action blocked and handled.
+								}
+							}
                         } catch (const std::exception& e) {
                             setErrorMessage(errorMessageText, "Intervention failed: " + std::string(e.what()));
                             // If intervention itself fails, ensure flags are not incorrectly true
@@ -728,10 +728,11 @@ void Window::handleEvents() {
 					if (attacker) {
 						// Execute bribe immediately to deduct coins
 						try {
-							// TODO
-							// // This will deduct the 4 coins cost
-							// attacker->bribe();
-							// std::cout << "Bribe cost paid" << std::endl;
+
+							// This will deduct the 4 coins cost
+							attacker->bribe();
+							std::cout << "Bribe cost paid" << std::endl;
+
 							this->current_game->set_judge_intervention(false);
 							// Now check for Judge intervention
 							auto judges = current_game->get_judges();
@@ -1019,7 +1020,7 @@ void Window::handleEvents() {
 							current_game->set_judge_intervention(true); // IMPORTANT: Set flag
 							setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
 							interventionState = InterventionState::NONE;
-							this->current_game->get_current_player()->bribe(); // Bribe attempt (blocked) consumes the turn
+							current_game->next_turn(); // REPLACE bribe() call with just advancing turn
 							return;  // Action blocked and handled.
 						}
 					}
@@ -1053,9 +1054,12 @@ void Window::handleEvents() {
 						// Message might be redundant if Player::coup handles its own state or turn changes view
 						setErrorMessage(errorMessageText, "COUPED " + pendingTarget->getName());
 					} else if (pendingActionType == "bribe") {
-						// judge_intervention flag is false.
-						pendingAttacker->getGame().set_judge_intervention(false);
-						pendingAttacker->bribe(); // Player::bribe should also check its flag
+						// All judges said NO - the bribe succeeds
+						// Coins were already deducted when button was clicked
+						
+						// Just ensure judge_intervention is false and grant extra turn
+						current_game->set_judge_intervention(false);
+						pendingAttacker->block_operation_with_timer(Operation::EXTRA_TURN);
 						setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
 					}
 				} catch (const std::exception& e) {
