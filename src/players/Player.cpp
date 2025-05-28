@@ -80,6 +80,7 @@ using namespace coup;
 
 				
 				// Check with all the judges if they want to block bribe
+
 				if(current_game->check_judge_intervention(*this)){
 					// Bribe was blocked by a Judge
 					// Coins already spent, loser

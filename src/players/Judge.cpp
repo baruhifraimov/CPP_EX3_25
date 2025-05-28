@@ -10,8 +10,10 @@ bool Judge::undo(Player& o, bool shouldBlock) {
               << o.getName() << "'s bribe action: " << (shouldBlock ? "YES" : "NO") << std::endl;
     
     if (shouldBlock) {
+            this->getGame().set_judge_intervention(true);
             return true;
         } else {
+            this->getGame().set_judge_intervention(false);
             return false;
         }
     }

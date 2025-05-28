@@ -22,10 +22,13 @@ private:
     sf::Font font;
     
     // -- GameOver --
+    sf::RectangleShape gameOverBackground;
     sf::Text winnerText;
     sf::Text gameOverText;
     sf::RectangleShape playAgainButton, exitGameButton;
     sf::Text playAgainButtonText, exitGameButtonText;
+    sf::Texture trophyTexture;
+    sf::Sprite trophySprite;
     std::string winnerName = "";
 
     // --- Menu ---
@@ -40,7 +43,7 @@ private:
     sf::Text namePrompt, nameInputText;
     std::string nameInput;
     bool namesComplete = false;
-    sf::RectangleShape nextButton;
+    sf::RectangleShape nextButton, nextButtonShadow;
     sf::Text            nextButtonText;
     
     // --- play screen ---
@@ -111,7 +114,7 @@ private:
     // factory + Game
     int num_of_players; // Number 
     int index_nop; // index of num of player
-    Game current_game; // Game instance for the game
+    Game* current_game; // Game instance for the game
     PlayerFactory PF;
 
     /**
@@ -169,6 +172,24 @@ private:
      * @param message 
      */
     void setActionPrompt(const std::string& message);
+
+    /**
+     * @brief responsible for resetting the state of the game. This function likely    
+     * reinitializes game-related data or settings to their default values, preparing the game for a fresh start.
+     * 
+     */
+    void resetGame();
+
+    /**
+     * @brief responsible for adjusting text size to fit within a button's boundaries.
+     * It checks if the text width exceeds the button width and reduces the font size
+     * until the text fits properly. After resizing, it re-centers the text within
+     * the button to maintain proper alignment.
+     *
+     * @param text
+     * @param button
+     */
+    void fitTextInButton(sf::Text& text, const sf::RectangleShape& button);
 
 public:
     Window(Game& current_game);

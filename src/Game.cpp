@@ -9,6 +9,15 @@
 
 using namespace coup;
 
+void Game::reset() {
+    // Reset all game state to fresh values
+    player_objects.clear();
+    cur_round = 0;
+    index = 0;
+    treasury = INITIAL_TREASURY;
+	target_player = nullptr;
+}
+
 void Game::start_game() {
     size_t n = this->player_objects.size();
     if (n < MIN_PLAYERS || n > MAX_PLAYERS) {
@@ -221,6 +230,22 @@ void Game::set_target_player(Player& o){
 
 Player& Game::get_target_player(){
 	return *this->target_player;
+}
+
+bool Game::get_general_intervention() const {
+    return general_intervention;
+}
+
+void Game::set_general_intervention(bool value) {
+    general_intervention = value;
+}
+
+bool Game::get_judge_intervention() const {
+    return judge_intervention;
+}
+
+void Game::set_judge_intervention(bool value) {
+    judge_intervention = value;
 }
 
 // bool Game::ask_general_intervention(Player& general, Player& attacker, Player& target){

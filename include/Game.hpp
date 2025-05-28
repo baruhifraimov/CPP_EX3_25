@@ -7,7 +7,7 @@
 
 #define MIN_PLAYERS 2
 #define MAX_PLAYERS 6
-
+#define INITIAL_TREASURY 9999
 namespace coup{
 
 class Player;
@@ -17,6 +17,9 @@ class Game {
 		int cur_round,index;
 		int treasury; // coins bank
 		Player* target_player;
+		bool general_intervention;
+		bool judge_intervention;
+
 
 	public:
 
@@ -25,12 +28,14 @@ class Game {
 				 player_objects(),
 				 cur_round(0),
 				 index(0),
-				 treasury(9999), // default 6 coins (cause 6 players max)
-				 target_player(nullptr){
+				 treasury(INITIAL_TREASURY), // default 6 coins (cause 6 players max)
+				 target_player(nullptr),
+				 general_intervention(false),
+				 judge_intervention(false) {
 			
 		}
 		// Copy constructor
-		Game(Game &o) : player_objects(o.player_objects), cur_round(o.cur_round), index(o.index), treasury(o.treasury), target_player(o.target_player){
+		Game(Game &o) : player_objects(o.player_objects), cur_round(o.cur_round), index(o.index), treasury(o.treasury), target_player(o.target_player), general_intervention(o.general_intervention), judge_intervention(o.judge_intervention){
 
 		}
 		// Destructor
@@ -49,7 +54,8 @@ class Game {
 			this->player_objects = o.player_objects;
 			this->treasury = o.treasury;
 			this->target_player = o.target_player;
-
+			this->general_intervention = o.general_intervention;
+			this->judge_intervention = o.judge_intervention;
 			
 			return *this;
 
@@ -201,5 +207,38 @@ class Game {
 		 * @return Player& 
 		 */
 		Player& get_target_player();
+
+		/**
+		 * @brief resets the game state to its initial configuration, 
+		 * preparing it for a new game or restarting the current one.
+		 * 
+		 */
+		void reset();
+
+		/**
+		 * @brief Get the general intervention flag
+		 * @return true if a general has intervened in the current action
+		 * @return false otherwise
+		 */
+		bool get_general_intervention() const;
+
+		/**
+		 * @brief Set the general intervention flag
+		 * @param value The new value for the flag
+		 */
+		void set_general_intervention(bool value);
+
+		/**
+		 * @brief Get the judge intervention flag
+		 * @return true if a judge has intervened in the current action
+		 * @return false otherwise
+		 */
+		bool get_judge_intervention() const;
+
+		/**
+		 * @brief Set the judge intervention flag
+		 * @param value The new value for the flag
+		 */
+		void set_judge_intervention(bool value);
 };
 }
