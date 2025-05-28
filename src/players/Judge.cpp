@@ -11,6 +11,8 @@ bool Judge::undo(Player& o, bool shouldBlock) {
     
     if (shouldBlock) {
             this->getGame().set_judge_intervention(true);
+            
+            o.unblock_operation(Operation::EXTRA_TURN);
             return true;
         } else {
             this->getGame().set_judge_intervention(false);

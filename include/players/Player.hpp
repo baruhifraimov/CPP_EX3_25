@@ -259,6 +259,13 @@ class Player{
          */
         void pay_coup_cost(Player& target);
 
+		/**
+		 * @brief Unblocking operations by unmasking them
+		 * 
+		 * @param op The operation that you want to unblock
+		 */
+		void unblock_operation(Operation op);
+
 	// Protected methods, hidden from the public
 	protected:
 		// Field to track block timers for each operation
@@ -272,13 +279,6 @@ class Player{
 		 * @return false Is unblocked
 		 */
 		bool is_operation_blocked(Operation op);
-
-		/**
-		 * @brief Unblocking operations by unmasking them
-		 * 
-		 * @param op The operation that you want to unblock
-		 */
-		void unblock_operation(Operation op);
 
 	};
 }

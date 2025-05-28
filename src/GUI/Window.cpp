@@ -720,7 +720,7 @@ void Window::handleEvents() {
 				}
 				else if (isButtonClicked(bribeButton, mp)) {
 					// reset flag
-					this->current_game->set_judge_intervention(false);
+					this->current_game->set_judge_intervention(true);
 
 					std::cout << "BRIBE action clicked!" << std::endl;
 					setErrorMessage(errorMessageText, "");  // Clear previous error
@@ -728,10 +728,11 @@ void Window::handleEvents() {
 					if (attacker) {
 						// Execute bribe immediately to deduct coins
 						try {
-							// This will deduct the 4 coins cost
-							attacker->bribe();
-							std::cout << "Bribe cost paid" << std::endl;
-							
+							// TODO
+							// // This will deduct the 4 coins cost
+							// attacker->bribe();
+							// std::cout << "Bribe cost paid" << std::endl;
+							this->current_game->set_judge_intervention(false);
 							// Now check for Judge intervention
 							auto judges = current_game->get_judges();
 							std::vector<Player*> eligibleJudges;
@@ -941,44 +942,6 @@ void Window::handleEvents() {
                                     pendingAction = "";
                                 }
                             }
-							// else if (pendingAction == "bribe") {
-							// 	// Check for Judge intervention before executing bribe
-							// 	auto judges = current_game->get_judges();
-							// 	std::vector<Player*> eligibleJudges;
-								
-							// 	// Find judges who can intervene (not the attacker)
-							// 	for (Player* judge : judges) {
-							// 		if (judge != currentPlayer) {
-							// 			eligibleJudges.push_back(judge);
-							// 		}
-							// 	}
-								
-							// 	if (!eligibleJudges.empty()) {
-							// 		// Start intervention process
-							// 		interventionState = InterventionState::WAITING_JUDGE;
-							// 		pendingInterventors = eligibleJudges;
-							// 		currentInterventorIndex = 0;
-							// 		pendingAttacker = currentPlayer;
-							// 		pendingActionType = "bribe";
-									
-							// 		// Set up intervention prompt
-							// 		interventionPromptText.setString(
-							// 			pendingInterventors[0]->getName() + " (Judge), do you want to block " +
-							// 			pendingAttacker->getName() + "'s bribe?"
-							// 		);
-									
-							// 		// Don't execute bribe yet - wait for intervention decision
-							// 		actionState = ActionState::CHOOSING_ACTION;
-							// 		actionPromptText.setString("CHOOSE ACTION");
-							// 		pendingAction = "";
-							// 		return;  // Exit without executing bribe
-							// 	}
-								
-							// 	// No eligible judges, execute bribe normally
-							// 	currentPlayer->bribe();
-							// 	std::cout << "Bribe performed successfully!" << std::endl;
-							// 	setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL");
-							// }
 							else if (pendingAction == "arrest") {  
 								currentPlayer->arrest(current_game->get_target_player());  // Pass target player
 								std::cout << "Arrest performed on " << current_game->get_target_player().getName() << std::endl;
@@ -1056,7 +1019,7 @@ void Window::handleEvents() {
 							current_game->set_judge_intervention(true); // IMPORTANT: Set flag
 							setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
 							interventionState = InterventionState::NONE;
-							current_game->next_turn(); // Bribe attempt (blocked) consumes the turn
+							this->current_game->get_current_player()->bribe(); // Bribe attempt (blocked) consumes the turn
 							return;  // Action blocked and handled.
 						}
 					}

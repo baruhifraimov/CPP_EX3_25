@@ -81,7 +81,7 @@ using namespace coup;
 				
 				// Check with all the judges if they want to block bribe
 
-				if(current_game->check_judge_intervention(*this)){
+				if(current_game->check_judge_intervention(*this) && current_game->get_judge_intervention()){
 					// Bribe was blocked by a Judge
 					// Coins already spent, loser
 					if (is_operation_blocked(Operation::EXTRA_TURN)){
