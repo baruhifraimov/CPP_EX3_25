@@ -14,5 +14,4 @@ bool Judge::undo(Player& o, bool shouldBlock) {
         } else {
             return false;
         }
-        return false;
     }

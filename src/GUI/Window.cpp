@@ -519,13 +519,15 @@ void Window::handleEvents() {
                                     return;  // Action blocked, done
                                 }
                             } else if (interventionState == InterventionState::WAITING_JUDGE) {
-                                // Judge blocks bribe - pass true for shouldBlock
-                                if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
-                                    errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
-                                    interventionState = InterventionState::NONE;
-                                    return;  // Action blocked, done
-                                }
-                            }
+								// Judge blocks bribe - same pattern as General blocking coup
+								if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
+									errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
+									interventionState = InterventionState::NONE;
+									// Call next_turn() - the player's turn is over since bribe was blocked
+									current_game.next_turn();
+									return;  // Action blocked, done - NO re-execution
+								}
+							}
                         } catch (const std::exception& e) {
                             errorMessageText.setString("Intervention failed: " + std::string(e.what()));
                         }
@@ -544,14 +546,17 @@ void Window::handleEvents() {
 					// Move to next intervenor or execute action
 					currentInterventorIndex++;
 					if (currentInterventorIndex >= pendingInterventors.size()) {
-						// No more intervenors, execute the original action
+						// No more intervenors, original action was successful
 						try {
 							if (pendingActionType == "coup") {
 								pendingAttacker->coup(*pendingTarget);
 								errorMessageText.setString("COUPED " + pendingTarget->getName());
 							} else if (pendingActionType == "bribe") {
-								pendingAttacker->bribe();
-								errorMessageText.setString("BRIBE SUCCESSFUL");
+								// Bribe was already executed at the start
+								// No need to call bribe() again
+								errorMessageText.setString("BRIBE SUCCESSFUL - EXTRA TURN");
+								// Don't call next_turn() - player gets an extra turn
+								// The coins were already deducted when the action started
 							}
 						} catch (const std::exception& e) {
 							errorMessageText.setString("ERROR: " + std::string(e.what()));
@@ -615,35 +620,39 @@ void Window::handleEvents() {
 					errorMessageText.setString("");  // Clear previous error
 					Player* attacker = current_game.get_current_player();
 					if (attacker) {
-						// gather all other Judges
-						auto judges = current_game.get_judges();
-						std::vector<Player*> eligibleJudges;
-						for (auto* j : judges) {
-							if (j != attacker) eligibleJudges.push_back(j);
-						}
-
-						if (!eligibleJudges.empty()) {
-							// start Judge intervention
-							interventionState      = InterventionState::WAITING_JUDGE;
-							pendingInterventors    = std::move(eligibleJudges);
-							currentInterventorIndex = 0;
-							pendingAttacker        = attacker;
-							pendingActionType      = "bribe";
-							interventionPromptText.setString(
-								pendingInterventors[0]->getName() +
-								" (Judge), block " + attacker->getName() + "'s bribe?"
-							);
-							return;  // <-- bail out now so we stay in intervention mode
-						} else {
-							// no Judges → execute immediately
-							try {
-								attacker->bribe();
-								std::cout << "Bribe successful" << std::endl;
-								errorMessageText.setString("BRIBE SUCCESSFUL");
-							} catch (const std::exception& e) {
-								std::cout << "Bribe failed: " << e.what() << std::endl;
-								errorMessageText.setString("ERROR: " + std::string(e.what()));
+						// Execute bribe immediately to deduct coins
+						try {
+							// This will deduct the 4 coins cost
+							attacker->bribe();
+							std::cout << "Bribe cost paid" << std::endl;
+							
+							// Now check for Judge intervention
+							auto judges = current_game.get_judges();
+							std::vector<Player*> eligibleJudges;
+							for (auto* j : judges) {
+								if (j != attacker) eligibleJudges.push_back(j);
 							}
+				
+							if (!eligibleJudges.empty()) {
+								// start Judge intervention
+								interventionState      = InterventionState::WAITING_JUDGE;
+								pendingInterventors    = std::move(eligibleJudges);
+								currentInterventorIndex = 0;
+								pendingAttacker        = attacker;
+								pendingActionType      = "bribe";
+								interventionPromptText.setString(
+									pendingInterventors[0]->getName() +
+									" (Judge), block " + attacker->getName() + "'s bribe?"
+								);
+								return;  // bail out now so we stay in intervention mode
+							} else {
+								// no Judges → bribe already executed, just show success
+								errorMessageText.setString("BRIBE SUCCESSFUL - EXTRA TURN");
+								// Don't call next_turn() - player gets another turn
+							}
+						} catch (const std::exception& e) {
+							std::cout << "Bribe failed: " << e.what() << std::endl;
+							errorMessageText.setString("ERROR: " + std::string(e.what()));
 						}
 					}
 				}

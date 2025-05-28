@@ -85,14 +85,14 @@ using namespace coup;
 					// Coins already spent, loser
 					if (is_operation_blocked(Operation::EXTRA_TURN)){
 						unblock_operation(Operation::EXTRA_TURN);
-						return;
 					}
 					else{
 						this->current_game->next_turn(); // next round
-						return;
 					}
+					return;
 				}
 				else{
+					// Bribe succeeded - grant extra turn
 					block_operation_with_timer(Operation::EXTRA_TURN);
 				}
 			}
