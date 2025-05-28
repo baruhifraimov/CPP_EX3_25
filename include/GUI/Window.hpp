@@ -162,6 +162,14 @@ private:
      */
     void checkGameOver();
 
+    /**
+     * @brief sets the Action Prompt object by accepting a constant reference to a std::string containing the desired message. 
+     * This function allows updating or defining the prompt message for user interaction or display purposes.
+     * 
+     * @param message 
+     */
+    void setActionPrompt(const std::string& message);
+
 public:
     Window(Game& current_game);
     ~Window();

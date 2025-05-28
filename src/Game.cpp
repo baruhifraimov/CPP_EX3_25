@@ -117,29 +117,35 @@ void Game::add_coins(int n){
 }
 
 void Game::next_turn(){
-	this->cur_round+=1;
-	this->index+=1;
-	if(player_objects.size() < MIN_PLAYERS){
-		this->winner();
-	}
-	for (int i = 0; i < player_objects.size(); i++)
-	{
-		if(player_objects.at(i)->getName() == this->turn() && player_objects.at(i)->getActive()) {
-			player_objects[i]->update_block_timers();
-			if(player_objects.at(i)->IsOver10Coins()){
-				std::cout << *player_objects.at(i)<<" got over 10 coins, must use coup, all other abilities are disabled" << std::endl;
-			}
-			// Check if Merchant, if yes -> do special ability
-			if(player_objects.at(i)->getRole() == Role::MERCHANT && player_objects.at(i)->coins() >= 3){
-				player_objects.at(i)->addCoins(1);
-			}
-		}
-		else{
-			if(!player_objects.at(i)->getActive()){
-				throw std::runtime_error(player_objects.at(i)->getName()+" is not active.");
-			}
-		}
-	}
+    // Increment the index before normalizing it
+    this->cur_round+=1;
+    this->index+=1;
+    
+    // Normalize the index - in case the array size has changed
+    this->index = this->index % player_objects.size();
+    
+    if(player_objects.size() < MIN_PLAYERS){
+        this->winner();
+    }
+    
+    for (int i = 0; i < player_objects.size(); i++)
+    {
+        if(player_objects.at(i)->getName() == this->turn() && player_objects.at(i)->getActive()) {
+            player_objects[i]->update_block_timers();
+            if(player_objects.at(i)->IsOver10Coins()){
+                std::cout << *player_objects.at(i)<<" got over 10 coins, must use coup, all other abilities are disabled" << std::endl;
+            }
+            // Check if Merchant, if yes -> do special ability
+            if(player_objects.at(i)->getRole() == Role::MERCHANT && player_objects.at(i)->coins() >= 3){
+                player_objects.at(i)->addCoins(1);
+            }
+        }
+        else{
+            if(!player_objects.at(i)->getActive()){
+                throw std::runtime_error(player_objects.at(i)->getName()+" is not active.");
+            }
+        }
+    }
 }
 
 bool Game::check_general_intervention(Player& attacker, Player& target){

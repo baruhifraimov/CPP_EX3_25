@@ -4,19 +4,22 @@
 
 using namespace coup;
 
-		void Governor::block_tax(Player& o){
-			this->isMyTurn(); // Check if its my turn
-			if(!IsOver10Coins()){
-				this->block_operation_with_timer(Operation::TAX);
-				if (is_operation_blocked(Operation::EXTRA_TURN))
-				{
-					unblock_operation(Operation::EXTRA_TURN);
-				}
-				else{
-					this->getGame().next_turn(); // next round
-					}
-				}
-			else{
-				throw std::runtime_error("block_tax is disabled, got over or equal to 10 coins, illegal move");
-			}
+	void Governor::block_tax(Player& o) {
+		// Check if it's this Governor's turn
+		this->isMyTurn();
+		
+		// Make sure target isn't the Governor itself
+		if (&o == this) {
+			throw std::runtime_error("Cannot block your own tax, illegal move");
 		}
+		
+		// Block the target's TAX operation using the existing mechanism
+		o.block_operation_with_timer(Operation::TAX);
+		
+		// Handle turn advancement
+		if (is_operation_blocked(Operation::EXTRA_TURN)) {
+			unblock_operation(Operation::EXTRA_TURN);
+		} else {
+			this->getGame().next_turn(); // next round
+		}
+	}

@@ -19,7 +19,7 @@
 
 using namespace coup;
 
-Window::Window(Game& current_game) : window(sf::VideoMode(800, 600), "COUP Game"), 								current_game(current_game) {
+Window::Window(Game& current_game) : window(sf::VideoMode(768,672), "COUP Game"), 								current_game(current_game) {
 	
     if (!font.loadFromFile("./src/GUI/fonts/PressStart2P-Regular.ttf")) {
         std::cerr << "Error: Could not load PressStart2P-Regular.ttf font!" << std::endl;
@@ -153,148 +153,151 @@ void Window::initializeComponents() {
     }
 
 // --- Play screen setup ---
-    // Current player role display (right side)
-    currentPlayerRoleText.setFont(font);
-    currentPlayerRoleText.setCharacterSize(28);
-    currentPlayerRoleText.setFillColor(sf::Color::White);
-    currentPlayerRoleText.setPosition(550, 150);
-
-    // Action prompt box (center)
-    actionPromptBox.setSize({400, 80});
-    actionPromptBox.setFillColor(sf::Color::Black);
-    actionPromptBox.setOutlineThickness(3);
-    actionPromptBox.setOutlineColor(sf::Color::Red);
-	actionPromptBox.setPosition(200, 485);
-
-    actionPromptText.setFont(font);
-    actionPromptText.setCharacterSize(18);
-    actionPromptText.setFillColor(sf::Color::White);
-    actionPromptText.setPosition(220, 510);
-    actionPromptText.setString("CHOOSE ACTION");
-
-
-
-	// Action buttons - flat retro style, centered horizontally
-	sf::Vector2f buttonSize(120, 50);  // Made smaller to fit 6 buttons
-	sf::Color buttonColor(64, 64, 64);  // dark gray
-
-	float startX = (800 - (6 * 120 + 5 * 15)) / 2.0f;  // Center horizontally
-	float buttonY = 370;  // Position in lower half of screen
-	gatherButton.setSize(buttonSize);
-	gatherButton.setFillColor(buttonColor);
-	gatherButton.setPosition(startX, buttonY);  // First button
-	
-	taxButton.setSize(buttonSize);
-	taxButton.setFillColor(buttonColor);
-	taxButton.setPosition(startX + 135, buttonY);  // Second button (120 + 15 gap)
-	
-	bribeButton.setSize(buttonSize);
-	bribeButton.setFillColor(buttonColor);
-	bribeButton.setPosition(startX + 270, buttonY);  // Third button
-	
-	arrestButton.setSize(buttonSize);
-	arrestButton.setFillColor(buttonColor);
-	arrestButton.setPosition(startX + 405, buttonY);  // Fourth button
-	
-	sanctionButton.setSize(buttonSize);
-	sanctionButton.setFillColor(buttonColor);
-	sanctionButton.setPosition(startX + 540, buttonY);  // Fifth button
-	
-	coupButton.setSize(buttonSize);
-	coupButton.setFillColor(buttonColor);
-	coupButton.setPosition(startX + 675, buttonY);  // Sixth button
-	
-	// Button texts
-	gatherButtonText.setFont(font);
-	gatherButtonText.setString("GATHER");
-	gatherButtonText.setCharacterSize(14);
-	gatherButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(gatherButtonText, gatherButton);
-	
-	taxButtonText.setFont(font);
-	taxButtonText.setString("TAX");
-	taxButtonText.setCharacterSize(14);
-	taxButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(taxButtonText, taxButton);
-	
-	bribeButtonText.setFont(font);
-	bribeButtonText.setString("BRIBE");
-	bribeButtonText.setCharacterSize(14);
-	bribeButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(bribeButtonText, bribeButton);
-	
-	arrestButtonText.setFont(font);
-	arrestButtonText.setString("ARREST");
-	arrestButtonText.setCharacterSize(14);
-	arrestButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(arrestButtonText, arrestButton);
-	
-	sanctionButtonText.setFont(font);
-	sanctionButtonText.setString("SANCTION");
-	sanctionButtonText.setCharacterSize(12);
-	sanctionButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(sanctionButtonText, sanctionButton);
-	
-	coupButtonText.setFont(font);
-	coupButtonText.setString("COUP");
-	coupButtonText.setCharacterSize(14);
-	coupButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(coupButtonText, coupButton);
+	// Current player role display (right side)
+	currentPlayerRoleText.setFont(font);
+	currentPlayerRoleText.setCharacterSize(28);
+	currentPlayerRoleText.setFillColor(sf::Color::White);
+	currentPlayerRoleText.setPosition(450, 120);
 
 	// Error message display
 	errorMessageText.setFont(font);
 	errorMessageText.setCharacterSize(16);
 	errorMessageText.setFillColor(sf::Color::Red);
-	errorMessageText.setPosition(50, 500);  // Below player list
-	errorMessageText.setString("");  // Start empty
+	errorMessageText.setPosition(50, 430);  // Positioned just above action buttons
 
-	// Role-specific buttons - positioned below the default buttons  
+	// Action prompt box (center bottom)
+	actionPromptBox.setSize({400, 60});  // Made slightly smaller height
+	actionPromptBox.setFillColor(sf::Color(30, 30, 30));  // Darker background
+	actionPromptBox.setOutlineThickness(2);
+	actionPromptBox.setOutlineColor(sf::Color::Red);
+	actionPromptBox.setPosition(184, 600);  // Moved down near bottom of screen (672px height)
+
+	actionPromptText.setFont(font);
+	actionPromptText.setCharacterSize(18);
+	actionPromptText.setFillColor(sf::Color::White);
+	// Use the centerTextInButton helper to properly center text in the box
+	centerTextInButton(actionPromptText, actionPromptBox);
+	setActionPrompt("CHOOSE ACTION");
+
+	// Action buttons - improved layout for 768px window width
+	sf::Vector2f buttonSize(110, 45);  // Slightly smaller but more consistent sizing
+	sf::Color buttonColor(40, 44, 52);  // More modern dark color
+
+	// Calculate proper spacing for 6 buttons across 768px width
+	float buttonGap = 15;
+	float startX = (768 - (6 * buttonSize.x + 5 * buttonGap)) / 2.0f;  // Center horizontally with correct window width
+	float buttonY = 470;  // Position above action prompt box
+
+	// Main action buttons
+	gatherButton.setSize(buttonSize);
+	gatherButton.setFillColor(buttonColor);
+	gatherButton.setPosition(startX, buttonY);
+
+	taxButton.setSize(buttonSize);
+	taxButton.setFillColor(buttonColor);
+	taxButton.setPosition(startX + buttonSize.x + buttonGap, buttonY);
+
+	bribeButton.setSize(buttonSize);
+	bribeButton.setFillColor(buttonColor);
+	bribeButton.setPosition(startX + 2 * (buttonSize.x + buttonGap), buttonY);
+
+	arrestButton.setSize(buttonSize);
+	arrestButton.setFillColor(buttonColor);
+	arrestButton.setPosition(startX + 3 * (buttonSize.x + buttonGap), buttonY);
+
+	sanctionButton.setSize(buttonSize);
+	sanctionButton.setFillColor(buttonColor);
+	sanctionButton.setPosition(startX + 4 * (buttonSize.x + buttonGap), buttonY);
+
+	coupButton.setSize(buttonSize);
+	coupButton.setFillColor(buttonColor);
+	coupButton.setPosition(startX + 5 * (buttonSize.x + buttonGap), buttonY);
+
+	// Role-specific buttons - positioned in a row below main buttons
 	sf::Vector2f roleButtonSize(120, 40);
-	sf::Color roleButtonColor(80, 120, 160);  // blue-ish
+	sf::Color roleButtonColor(60, 90, 120);  // More vibrant blue for role buttons
 
-	float roleStartX = (800 - (3 * 120 + 2 * 15)) / 2.0f;  // Center for max 3 buttons
-	float roleButtonY = 430;  // Below default buttons
+	float roleStartX = (768 - (3 * roleButtonSize.x + 2 * buttonGap)) / 2.0f;  // Center for max 3 buttons
+	float roleButtonY = 525;  // Below main buttons, above action prompt
 
-	// Baron button - INVEST (needs target selection)
+	// Baron button
 	baronInvestButton.setSize(roleButtonSize);
 	baronInvestButton.setFillColor(roleButtonColor);
 	baronInvestButton.setPosition(roleStartX, roleButtonY);
-
-	baronInvestButtonText.setFont(font);
-	baronInvestButtonText.setString("INVEST");
-	baronInvestButtonText.setCharacterSize(12);
-	baronInvestButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(baronInvestButtonText, baronInvestButton);
 
 	// Spy buttons
 	spyViewCoinsButton.setSize(roleButtonSize);
 	spyViewCoinsButton.setFillColor(roleButtonColor);  
 	spyViewCoinsButton.setPosition(roleStartX, roleButtonY);
 
-	spyViewCoinsButtonText.setFont(font);
-	spyViewCoinsButtonText.setString("VIEW COINS");
-	spyViewCoinsButtonText.setCharacterSize(10);
-	spyViewCoinsButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(spyViewCoinsButtonText, spyViewCoinsButton);
-
 	spyBlockArrestButton.setSize(roleButtonSize);
 	spyBlockArrestButton.setFillColor(roleButtonColor);
-	spyBlockArrestButton.setPosition(roleStartX + 135, roleButtonY);
-
-	spyBlockArrestButtonText.setFont(font);
-	spyBlockArrestButtonText.setString("BLOCK ARREST");
-	spyBlockArrestButtonText.setCharacterSize(9);
-	spyBlockArrestButtonText.setFillColor(sf::Color::White);
-	centerTextInButton(spyBlockArrestButtonText, spyBlockArrestButton);
+	spyBlockArrestButton.setPosition(roleStartX + roleButtonSize.x + buttonGap, roleButtonY);
 
 	// Governor button
 	governorBlockTaxButton.setSize(roleButtonSize);
 	governorBlockTaxButton.setFillColor(roleButtonColor);
 	governorBlockTaxButton.setPosition(roleStartX, roleButtonY);
 
+		// Main action buttons text setup
+	gatherButtonText.setFont(font);
+	gatherButtonText.setString("GATHER");
+	gatherButtonText.setCharacterSize(14);
+	gatherButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(gatherButtonText, gatherButton);
+
+	taxButtonText.setFont(font);
+	taxButtonText.setString("TAX");
+	taxButtonText.setCharacterSize(14);
+	taxButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(taxButtonText, taxButton);
+
+	bribeButtonText.setFont(font);
+	bribeButtonText.setString("BRIBE");
+	bribeButtonText.setCharacterSize(14);
+	bribeButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(bribeButtonText, bribeButton);
+
+	arrestButtonText.setFont(font);
+	arrestButtonText.setString("ARREST");
+	arrestButtonText.setCharacterSize(14);
+	arrestButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(arrestButtonText, arrestButton);
+
+	sanctionButtonText.setFont(font);
+	sanctionButtonText.setString("SANCTION");
+	sanctionButtonText.setCharacterSize(14);
+	sanctionButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(sanctionButtonText, sanctionButton);
+
+	coupButtonText.setFont(font);
+	coupButtonText.setString("COUP");
+	coupButtonText.setCharacterSize(14);
+	coupButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(coupButtonText, coupButton);
+
+	// Role-specific button text setup
+	baronInvestButtonText.setFont(font);
+	baronInvestButtonText.setString("INVEST");
+	baronInvestButtonText.setCharacterSize(14);
+	baronInvestButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(baronInvestButtonText, baronInvestButton);
+
+	spyViewCoinsButtonText.setFont(font);
+	spyViewCoinsButtonText.setString("VIEW COINS");
+	spyViewCoinsButtonText.setCharacterSize(14);
+	spyViewCoinsButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(spyViewCoinsButtonText, spyViewCoinsButton);
+
+	spyBlockArrestButtonText.setFont(font);
+	spyBlockArrestButtonText.setString("BLOCK ARREST");
+	spyBlockArrestButtonText.setCharacterSize(14);
+	spyBlockArrestButtonText.setFillColor(sf::Color::White);
+	centerTextInButton(spyBlockArrestButtonText, spyBlockArrestButton);
+
 	governorBlockTaxButtonText.setFont(font);
 	governorBlockTaxButtonText.setString("BLOCK TAX");
-	governorBlockTaxButtonText.setCharacterSize(11);
+	governorBlockTaxButtonText.setCharacterSize(14);
 	governorBlockTaxButtonText.setFillColor(sf::Color::White);
 	centerTextInButton(governorBlockTaxButtonText, governorBlockTaxButton);
 
@@ -302,21 +305,21 @@ void Window::initializeComponents() {
 	// Intervention UI setup
 	interventionBox.setSize(sf::Vector2f(600, 200));
 	interventionBox.setFillColor(sf::Color(40, 40, 40, 230));  // Semi-transparent dark gray
-	interventionBox.setPosition(100, 250);  // Center of screen
+	interventionBox.setPosition(100, 100);  // Upper middle of screen (moved from y=250 to y=100)
 
 	interventionPromptText.setFont(font);
 	interventionPromptText.setCharacterSize(16);
 	interventionPromptText.setFillColor(sf::Color::White);
-	interventionPromptText.setPosition(120, 280);
+	interventionPromptText.setPosition(120, 130);  // Adjusted to match new box position
 
 	// Yes/No buttons for intervention
 	yesButton.setSize(sf::Vector2f(100, 40));
 	yesButton.setFillColor(sf::Color(0, 150, 0));  // Green
-	yesButton.setPosition(200, 380);
+	yesButton.setPosition(200, 230);  // Moved up to match new box position
 
 	noButton.setSize(sf::Vector2f(100, 40));
 	noButton.setFillColor(sf::Color(150, 0, 0));   // Red
-	noButton.setPosition(400, 380);
+	noButton.setPosition(400, 230);  // Moved up to match new box position
 
 	yesButtonText.setFont(font);
 	yesButtonText.setString("YES");
@@ -464,7 +467,8 @@ void Window::handleEvents() {
 				if (!nameInput.empty()) {
 					static std::random_device rd;
 					static std::mt19937 gen(rd());
-					static std::uniform_int_distribution<int> dis(0, 1);  // 0 to 5 inclusive
+					// DEBUG
+					static std::uniform_int_distribution<int> dis(0, 5);  // 0 to 5 inclusive
 					Role role = static_cast<Role>(dis(gen));
 					std::cout<< to_string(role);
 				  try {
@@ -516,6 +520,7 @@ void Window::handleEvents() {
                                 if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
                                     errorMessageText.setString(intervenor->getName() + " (General) blocked the coup!");
                                     interventionState = InterventionState::NONE;
+									current_game.next_turn();
                                     return;  // Action blocked, done
                                 }
                             } else if (interventionState == InterventionState::WAITING_JUDGE) {
@@ -663,7 +668,7 @@ void Window::handleEvents() {
 					// Switch to target selection mode (like sanction and coup)
 					actionState = ActionState::SELECTING_TARGET;
 					pendingAction = "arrest";
-					actionPromptText.setString("CLICK ON A PLAYER TO ARREST");
+					setActionPrompt("CLICK ON A PLAYER TO ARREST");
 				}
 				else if (isButtonClicked(sanctionButton, mp)) {
 					std::cout << "SANCTION action clicked!" << std::endl;
@@ -672,7 +677,7 @@ void Window::handleEvents() {
 					// Switch to target selection mode
 					actionState = ActionState::SELECTING_TARGET;
 					pendingAction = "sanction";
-					actionPromptText.setString("CLICK ON A PLAYER TO SANCTION");
+					setActionPrompt("CLICK ON A PLAYER TO SANCTION");
 				}
 				else if (isButtonClicked(coupButton, mp)) {
 					std::cout << "COUP action clicked!" << std::endl;
@@ -681,7 +686,7 @@ void Window::handleEvents() {
 					// Switch to target selection mode
 					actionState = ActionState::SELECTING_TARGET;
 					pendingAction = "coup";
-					actionPromptText.setString("CLICK ON A PLAYER TO COUP");
+					setActionPrompt("CLICK ON A PLAYER TO COUP");
 				}
 				
 				// Role-specific buttons
@@ -713,7 +718,7 @@ void Window::handleEvents() {
 							// Switch to target selection mode for view coins
 							actionState = ActionState::SELECTING_TARGET;
 							pendingAction = "view_coins";
-							actionPromptText.setString("CLICK ON A PLAYER TO VIEW COINS");
+							setActionPrompt("CLICK ON A PLAYER TO VIEW COINS");
 						}
 						else if (isButtonClicked(spyBlockArrestButton, mp)) {
 							std::cout << "Spy BLOCK ARREST action clicked!" << std::endl;
@@ -722,7 +727,7 @@ void Window::handleEvents() {
 							// Switch to target selection mode for block arrest
 							actionState = ActionState::SELECTING_TARGET;
 							pendingAction = "block_arrest";
-							actionPromptText.setString("CLICK ON A PLAYER TO BLOCK ARREST");
+							setActionPrompt("CLICK ON A PLAYER TO BLOCK ARREST");
 						}
 					}
 					// Governor special actions
@@ -734,7 +739,7 @@ void Window::handleEvents() {
 							// Switch to target selection mode for block tax
 							actionState = ActionState::SELECTING_TARGET;
 							pendingAction = "block_tax";
-							actionPromptText.setString("CLICK ON A PLAYER TO BLOCK TAX");
+							setActionPrompt("CLICK ON A PLAYER TO BLOCK TAX");
 						}
 					}
 				}
@@ -802,7 +807,7 @@ void Window::handleEvents() {
 									
 									// Don't execute coup yet - wait for intervention decision
 									actionState = ActionState::CHOOSING_ACTION;
-									actionPromptText.setString("CHOOSE ACTION");
+									setActionPrompt("CHOOSE ACTION");
 									pendingAction = "";
 									return;  // Exit without executing coup
 								}
@@ -877,7 +882,7 @@ void Window::handleEvents() {
 							
 							// Reset to normal action selection
 							actionState = ActionState::CHOOSING_ACTION;
-							actionPromptText.setString("CHOOSE ACTION");
+							setActionPrompt("CHOOSE ACTION");
 							pendingAction = "";
 							
 						} catch (const std::exception& e) {
@@ -886,7 +891,7 @@ void Window::handleEvents() {
 							
 							// Reset to normal action selection
 							actionState = ActionState::CHOOSING_ACTION;
-							actionPromptText.setString("CHOOSE ACTION");
+							setActionPrompt("CHOOSE ACTION");
 							pendingAction = "";
 						}
 						break;  // Exit the loop since we found the clicked player
@@ -900,7 +905,7 @@ void Window::handleEvents() {
 			if (actionState == ActionState::SELECTING_TARGET) {
 				// Cancel target selection
 				actionState = ActionState::CHOOSING_ACTION;
-				actionPromptText.setString("CHOOSE ACTION");
+				setActionPrompt("CHOOSE ACTION");
 				pendingAction = "";
 				errorMessageText.setString("Action cancelled");
 			}
@@ -1190,6 +1195,35 @@ window.display();
 
 bool Window::isButtonClicked(const sf::RectangleShape& button, const sf::Vector2f& mousePos) {
     return button.getGlobalBounds().contains(mousePos);
+}
+
+void Window::setActionPrompt(const std::string& message) {
+    // Only change text if message is different
+    if (actionPromptText.getString() != message) {
+        // Set the text
+        actionPromptText.setString(message);
+        
+        // Always reset font size when text content changes
+        actionPromptText.setCharacterSize(18);
+        
+        // Get text bounds to check if it's too wide
+        sf::FloatRect textBounds = actionPromptText.getLocalBounds();
+        float maxWidth = actionPromptBox.getSize().x - 20; // 10px padding on each side
+        
+        // If text is too wide, reduce the font size
+        if (textBounds.width > maxWidth) {
+            int newSize = 18;
+            while (textBounds.width > maxWidth && newSize > 10) {
+                newSize -= 2;
+                actionPromptText.setCharacterSize(newSize);
+                textBounds = actionPromptText.getLocalBounds();
+            }
+        }
+        
+        // Re-center the text
+        centerTextInButton(actionPromptText, actionPromptBox);
+    }
+    // If message is the same, do nothing to preserve current size
 }
 
 // void Window::checkGameOver() {
