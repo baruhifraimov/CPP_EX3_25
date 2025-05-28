@@ -21,7 +21,7 @@ const sf::Color CREAM_TEXT(0xF5, 0xF1, 0xD0); // #F5F1D0 - Soft ivory/cream colo
 
 using namespace coup;
 
-Window::Window(Game& current_game) : window(sf::VideoMode(768,672), "COUP Game"), 								current_game(&current_game) {
+Window::Window(Game& current_game) : window(sf::VideoMode(768,672), "COUP Game"),current_game(&current_game) {
 	
     if (!font.loadFromFile("./src/GUI/fonts/PressStart2P-Regular.ttf")) {
         std::cerr << "Error: Could not load PressStart2P-Regular.ttf font!" << std::endl;
@@ -583,89 +583,97 @@ void Window::handleEvents() {
         }
 		else if (screen == Screen::Play){
 			   // PREVENT ALL OTHER INTERACTIONS DURING INTERVENTION
-			   if (interventionState != InterventionState::NONE) {
-				// Only handle intervention buttons during intervention
-				if (ev.type == sf::Event::MouseButtonPressed) {
-					auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
-					
-					if (isButtonClicked(yesButton, mp)) {
-                        Player* intervenor = pendingInterventors[currentInterventorIndex];
-                        try {
-                            if (interventionState == InterventionState::WAITING_GENERAL) {
-                                if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
-                                    current_game->set_general_intervention(true); // IMPORTANT: Set flag
-                                    setErrorMessage(errorMessageText, intervenor->getName() + " (General) blocked the coup!");
-                                    interventionState = InterventionState::NONE;
-                                    current_game->next_turn(); // Coup attempt (blocked) consumes the turn
-                                    return;  // Action blocked and handled.
-                                }
-                            } else if (interventionState == InterventionState::WAITING_JUDGE) {
-								if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
-									current_game->set_judge_intervention(true); // IMPORTANT: Set flag
-									setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
-									interventionState = InterventionState::NONE;
-									current_game->next_turn(); // REPLACE bribe() call with just advancing turn
-									return;  // Action blocked and handled.
-								}
-							}
-                        } catch (const std::exception& e) {
-                            setErrorMessage(errorMessageText, "Intervention failed: " + std::string(e.what()));
-                            // If intervention itself fails, ensure flags are not incorrectly true
-                            if (interventionState == InterventionState::WAITING_GENERAL) current_game->set_general_intervention(false);
-                            if (interventionState == InterventionState::WAITING_JUDGE) current_game->set_judge_intervention(false);
-                        }
-                    }
-					else if (isButtonClicked(noButton, mp)) {
-						// Current intervenor doesn't want to block - pass false for shouldBlock
-						Player* intervenor = pendingInterventors[currentInterventorIndex];
-						
-						if (interventionState == InterventionState::WAITING_GENERAL) {
-							dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, false);
-						} else if (interventionState == InterventionState::WAITING_JUDGE) {
-							dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, false);
-						}
-					}
-					
-					// Move to next intervenor or execute action
-					currentInterventorIndex++;
-					if (currentInterventorIndex >= pendingInterventors.size()) {
-                        // No more intervenors, or all said "No".
-                        // The intervention flag (e.g., general_intervention) should be false here.
-                        try {
-                            if (pendingActionType == "coup") {
-                                // general_intervention flag is false, Player::coup will proceed with elimination.
-                                pendingAttacker->coup(*pendingTarget);
-                                // Message might be redundant if Player::coup handles its own state or turn changes view
-                                setErrorMessage(errorMessageText, "COUPED " + pendingTarget->getName());
-                            } else if (pendingActionType == "bribe") {
-                                // judge_intervention flag is false.
-								pendingAttacker->getGame().set_judge_intervention(false);
-                                pendingAttacker->bribe(); // Player::bribe should also check its flag
-                                setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
-                            }
-                        } catch (const std::exception& e) {
-                            setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
-                        }
+if (interventionState != InterventionState::NONE) {
+    // Only handle intervention buttons during intervention
+    if (ev.type == sf::Event::MouseButtonPressed) {
+        auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
+        
+        // Track whether a valid button was clicked
+        bool validButtonClicked = false;
+        
+        if (isButtonClicked(yesButton, mp)) {
+            validButtonClicked = true;
+            Player* intervenor = pendingInterventors[currentInterventorIndex];
+            try {
+                if (interventionState == InterventionState::WAITING_GENERAL) {
+                    if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
+                        current_game->set_general_intervention(true); // IMPORTANT: Set flag
+                        setErrorMessage(errorMessageText, intervenor->getName() + " (General) blocked the coup!");
                         interventionState = InterventionState::NONE;
-                    } else {
-						// Ask next intervenor
-						Player* nextIntervenor = pendingInterventors[currentInterventorIndex];
-						if (interventionState == InterventionState::WAITING_GENERAL) {
-							interventionPromptText.setString(
-								nextIntervenor->getName() + " (General), do you want to block " +
-								pendingAttacker->getName() + "'s coup on " + pendingTarget->getName() + "?"
-							);
-						} else {
-							interventionPromptText.setString(
-								nextIntervenor->getName() + " (Judge), do you want to block " +
-								pendingAttacker->getName() + "'s bribe?"
-							);
-						}
-					}
-				}
-				// RETURN HERE - don't process any other events during intervention
-				return;
-			}
+                        current_game->next_turn(); // Coup attempt (blocked) consumes the turn
+                        return;  // Action blocked and handled.
+                    }
+                } else if (interventionState == InterventionState::WAITING_JUDGE) {
+                    if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
+                        current_game->set_judge_intervention(true); // IMPORTANT: Set flag
+                        setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
+                        interventionState = InterventionState::NONE;
+                        current_game->next_turn(); // REPLACE bribe() call with just advancing turn
+                        return;  // Action blocked and handled.
+                    }
+                }
+            } catch (const std::exception& e) {
+                setErrorMessage(errorMessageText, "Intervention failed: " + std::string(e.what()));
+                // If intervention itself fails, ensure flags are not incorrectly true
+                if (interventionState == InterventionState::WAITING_GENERAL) current_game->set_general_intervention(false);
+                if (interventionState == InterventionState::WAITING_JUDGE) current_game->set_judge_intervention(false);
+            }
+        }
+        else if (isButtonClicked(noButton, mp)) {
+            validButtonClicked = true;
+            // Current intervenor doesn't want to block - pass false for shouldBlock
+            Player* intervenor = pendingInterventors[currentInterventorIndex];
+            
+            if (interventionState == InterventionState::WAITING_GENERAL) {
+                dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, false);
+            } else if (interventionState == InterventionState::WAITING_JUDGE) {
+                dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, false);
+            }
+        }
+        
+        // Only proceed to next intervenor if a valid button was clicked
+        if (validButtonClicked) {
+            // Move to next intervenor or execute action
+            currentInterventorIndex++;
+            if (currentInterventorIndex >= pendingInterventors.size()) {
+                // No more intervenors, or all said "No".
+                // The intervention flag (e.g., general_intervention) should be false here.
+                try {
+                    if (pendingActionType == "coup") {
+                        // general_intervention flag is false, Player::coup will proceed with elimination.
+                        pendingAttacker->coup(*pendingTarget);
+                        // Message might be redundant if Player::coup handles its own state or turn changes view
+                        setErrorMessage(errorMessageText, "COUPED " + pendingTarget->getName());
+                    } else if (pendingActionType == "bribe") {
+                        // judge_intervention flag is false.
+                        pendingAttacker->getGame().set_judge_intervention(false);
+                        pendingAttacker->bribe(); // Player::bribe should also check its flag
+                        setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
+                    }
+                } catch (const std::exception& e) {
+                    setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
+                }
+                interventionState = InterventionState::NONE;
+            } else {
+                // Ask next intervenor
+                Player* nextIntervenor = pendingInterventors[currentInterventorIndex];
+                if (interventionState == InterventionState::WAITING_GENERAL) {
+                    interventionPromptText.setString(
+                        nextIntervenor->getName() + " (General), do you want to block " +
+                        pendingAttacker->getName() + "'s coup on " + pendingTarget->getName() + "?"
+                    );
+                } else {
+                    interventionPromptText.setString(
+                        nextIntervenor->getName() + " (Judge), do you want to block " +
+                        pendingAttacker->getName() + "'s bribe?"
+                    );
+                }
+            }
+        }
+    }
+    // RETURN HERE - don't process any other events during intervention
+    return;
+}
 
 			// NORMAL GAME PROCESSING - only when not in intervention
 			if (ev.type == sf::Event::MouseButtonPressed) {
@@ -720,7 +728,7 @@ void Window::handleEvents() {
 				}
 				else if (isButtonClicked(bribeButton, mp)) {
 					// reset flag
-					this->current_game->set_judge_intervention(true);
+					this->current_game->set_judge_intervention(false); // Initially assume no intervention
 
 					std::cout << "BRIBE action clicked!" << std::endl;
 					setErrorMessage(errorMessageText, "");  // Clear previous error
@@ -729,10 +737,6 @@ void Window::handleEvents() {
 						// Execute bribe immediately to deduct coins
 						try {
 
-							// This will deduct the 4 coins cost
-							attacker->bribe();
-							std::cout << "Bribe cost paid" << std::endl;
-
 							this->current_game->set_judge_intervention(false);
 							// Now check for Judge intervention
 							auto judges = current_game->get_judges();
@@ -740,6 +744,17 @@ void Window::handleEvents() {
 							for (auto* j : judges) {
 								if (j != attacker) eligibleJudges.push_back(j);
 							}
+
+							// Set flag to true only if judges exist
+							if (!eligibleJudges.empty()) {
+								this->current_game->set_judge_intervention(true);
+							}
+
+							// This will deduct the 4 coins cost
+							attacker->bribe();
+							std::cout << "Bribe cost paid" << std::endl;
+
+							
 				
 							if (!eligibleJudges.empty()) {
 								// start Judge intervention
@@ -999,92 +1014,6 @@ void Window::handleEvents() {
 			}
 		}
 
-			// Handle intervention decisions
-	if (interventionState != InterventionState::NONE) {
-		if (ev.type == sf::Event::MouseButtonPressed) {
-			auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
-			
-			if (isButtonClicked(yesButton, mp)) {
-				Player* intervenor = pendingInterventors[currentInterventorIndex];
-				try {
-					if (interventionState == InterventionState::WAITING_GENERAL) {
-						if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
-							current_game->set_general_intervention(true); // IMPORTANT: Set flag
-							setErrorMessage(errorMessageText, intervenor->getName() + " (General) blocked the coup!");
-							interventionState = InterventionState::NONE;
-							current_game->next_turn(); // Coup attempt (blocked) consumes the turn
-							return;  // Action blocked and handled.
-						}
-					} else if (interventionState == InterventionState::WAITING_JUDGE) {
-						if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
-							current_game->set_judge_intervention(true); // IMPORTANT: Set flag
-							setErrorMessage(errorMessageText, intervenor->getName() + " (Judge) blocked the bribe!");
-							interventionState = InterventionState::NONE;
-							current_game->next_turn(); // REPLACE bribe() call with just advancing turn
-							return;  // Action blocked and handled.
-						}
-					}
-				} catch (const std::exception& e) {
-					setErrorMessage(errorMessageText, "Intervention failed: " + std::string(e.what()));
-					// If intervention itself fails, ensure flags are not incorrectly true
-					if (interventionState == InterventionState::WAITING_GENERAL) current_game->set_general_intervention(false);
-					if (interventionState == InterventionState::WAITING_JUDGE) current_game->set_judge_intervention(false);
-				}
-			}
-			else if (isButtonClicked(noButton, mp)) {
-				// Current intervenor doesn't want to block - pass false for shouldBlock
-				Player* intervenor = pendingInterventors[currentInterventorIndex];
-				
-				if (interventionState == InterventionState::WAITING_GENERAL) {
-					dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, false);
-				} else if (interventionState == InterventionState::WAITING_JUDGE) {
-					dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, false);
-				}
-			}
-			
-			// Move to next intervenor or execute action
-			currentInterventorIndex++;
-			if (currentInterventorIndex >= pendingInterventors.size()) {
-				// No more intervenors, or all said "No".
-				// The intervention flag (e.g., general_intervention) should be false here.
-				try {
-					if (pendingActionType == "coup") {
-						// general_intervention flag is false, Player::coup will proceed with elimination.
-						pendingAttacker->coup(*pendingTarget);
-						// Message might be redundant if Player::coup handles its own state or turn changes view
-						setErrorMessage(errorMessageText, "COUPED " + pendingTarget->getName());
-					} else if (pendingActionType == "bribe") {
-						// All judges said NO - the bribe succeeds
-						// Coins were already deducted when button was clicked
-						
-						// Just ensure judge_intervention is false and grant extra turn
-						current_game->set_judge_intervention(false);
-						pendingAttacker->block_operation_with_timer(Operation::EXTRA_TURN);
-						setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
-					}
-				} catch (const std::exception& e) {
-					setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
-				}
-				interventionState = InterventionState::NONE;
-			} else {
-				// Ask next intervenor
-				Player* nextIntervenor = pendingInterventors[currentInterventorIndex];
-				if (interventionState == InterventionState::WAITING_GENERAL) {
-					interventionPromptText.setString(
-						nextIntervenor->getName() + " (General), do you want to block " +
-						pendingAttacker->getName() + "'s coup on " + pendingTarget->getName() + "?"
-					);
-				} else {
-					interventionPromptText.setString(
-						nextIntervenor->getName() + " (Judge), do you want to block " +
-						pendingAttacker->getName() + "'s bribe?"
-					);
-				}
-			}
-		}
-		return;  // Don't process other events during intervention
-		}
-
     }
 	else if (screen == Screen::GameOver) {
 		if (ev.type == sf::Event::MouseButtonPressed) {
@@ -1187,7 +1116,7 @@ void Window::render() {
 			// Highlight current player or show clickable state
 			if (players[i] == currentPlayer) {
 				playerInfo.setFillColor(sf::Color(255,215,0)); // gold
-			} else if (actionState == ActionState::SELECTING_TARGET) {
+			} else if (actionState == ActionState::SELECTING_TARGET && interventionState == InterventionState::NONE) {
 				playerInfo.setFillColor(sf::Color::Cyan);
 			} else {
 				playerInfo.setFillColor(CREAM_TEXT);
@@ -1197,101 +1126,68 @@ void Window::render() {
 			playerInfo.setPosition(50, 150 + i * 35);
 			window.draw(playerInfo);
 		}
-		// // Loop through each player to display them
-		// for (size_t i = 0; i < players.size(); ++i) {
-		// 	// Create a new text object for this player's info
-		// 	sf::Text playerInfo;
-		// 	// Use the same font as everything else
-		// 	playerInfo.setFont(font);
-		// 	// Set the text size
-		// 	playerInfo.setCharacterSize(20);
-			
-		// 	// This will hold the text we want to display for this player
-		// 	std::string playerText;
-			
-		// 	// Check if this player is the one whose turn it is
-		// 	if (players[i] == currentPlayer) {
-		// 		// This is the current player - highlight them in gold
-		// 		playerInfo.setFillColor(sf::Color(255, 215, 0)); // gold color
-		// 		// Show their name AND coin count: "Alice (3 coins)"
-		// 		playerText = players[i]->getName() + " " + to_string(players[i]->getRole()) + " (" + std::to_string(players[i]->coins()) + " coins)";
-		// 	} else {
-		// 		// This is NOT the current player - show in white
-		// 		if (actionState == ActionState::SELECTING_TARGET) {
-		// 			// If we're selecting a target, make other players cyan to show they're clickable
-		// 			playerInfo.setFillColor(sf::Color::Cyan);
-		// 		} else {
-		// 			playerInfo.setFillColor(CREAM_TEXT);
-		// 		}
-		// 		// Only show their name, hide their coins: "Bob"
-		// 		playerText = players[i]->getName();
-		// 	}
-			
-		// 	// Set the text content
-		// 	playerInfo.setString(playerText);
-		// 	// Position this player's text on the left side of screen
-		// 	// Each player is 35 pixels below the previous one
-		// 	playerInfo.setPosition(50, 150 + i * 35);
-		// 	// Actually draw this player's text to the screen
-		// 	window.draw(playerInfo);
-		// }
-
+	
 		// Draw the action prompt box and text
 		window.draw(actionPromptBox);
 		window.draw(actionPromptText);
 		
 		// Draw error message if there is one
 		window.draw(errorMessageText);
-
-		// Draw all the default action buttons at the bottom
-		window.draw(gatherButton);         // Draw the gray button background
-		window.draw(gatherButtonText);     // Draw the white "GATHER" text on top
-		window.draw(taxButton);            // Draw the gray button background
-		window.draw(taxButtonText);        // Draw the white "TAX" text on top
-		window.draw(bribeButton);          // Draw the gray button background
-		window.draw(bribeButtonText);      // Draw the white "BRIBE" text on top
-		window.draw(arrestButton);         // Draw the gray button background
-		window.draw(arrestButtonText);     // Draw the white "ARREST" text on top
-		window.draw(sanctionButton);       // Draw the gray button background
-		window.draw(sanctionButtonText);   // Draw the white "SANCTION" text on top
-		window.draw(coupButton);           // Draw the gray button background
-		window.draw(coupButtonText);       // Draw the white "COUP" text on top
-
-
-		// Draw role-specific buttons only for current player's role
-		if (currentPlayer) {
-			Role currentRole = currentPlayer->getRole();
-			
-			// Only draw the buttons that match the current player's role
-			switch(currentRole) {
-				case Role::BARON:
-					// Baron gets 1 button: INVEST
-					window.draw(baronInvestButton);
-					window.draw(baronInvestButtonText);
-					break;
-				case Role::SPY:
-					// Spy gets 2 buttons: VIEW COINS and BLOCK ARREST
-					window.draw(spyViewCoinsButton);
-					window.draw(spyViewCoinsButtonText);
-					window.draw(spyBlockArrestButton);
-					window.draw(spyBlockArrestButtonText);
-					break;
-				case Role::GOVERNOR:
-					// Governor gets 1 button: BLOCK TAX
-					window.draw(governorBlockTaxButton);
-					window.draw(governorBlockTaxButtonText);
-					break;
-				// Other roles don't have special buttons
-				case Role::GENERAL:
-				case Role::JUDGE:
-				case Role::MERCHANT:
-					// No special buttons for these roles
-					break;
+	
+		// Only draw action buttons if NOT in intervention state
+		if (interventionState == InterventionState::NONE) {
+			// Draw all the default action buttons at the bottom
+			window.draw(gatherButton);         
+			window.draw(gatherButtonText);     
+			window.draw(taxButton);            
+			window.draw(taxButtonText);        
+			window.draw(bribeButton);          
+			window.draw(bribeButtonText);      
+			window.draw(arrestButton);         
+			window.draw(arrestButtonText);     
+			window.draw(sanctionButton);       
+			window.draw(sanctionButtonText);   
+			window.draw(coupButton);           
+			window.draw(coupButtonText);       
+	
+			// Draw role-specific buttons only for current player's role
+			if (currentPlayer) {
+				Role currentRole = currentPlayer->getRole();
+				
+				// Only draw the buttons that match the current player's role
+				switch(currentRole) {
+					case Role::BARON:
+						window.draw(baronInvestButton);
+						window.draw(baronInvestButtonText);
+						break;
+					case Role::SPY:
+						window.draw(spyViewCoinsButton);
+						window.draw(spyViewCoinsButtonText);
+						window.draw(spyBlockArrestButton);
+						window.draw(spyBlockArrestButtonText);
+						break;
+					case Role::GOVERNOR:
+						window.draw(governorBlockTaxButton);
+						window.draw(governorBlockTaxButtonText);
+						break;
+					// Other roles don't have special buttons
+					case Role::GENERAL:
+					case Role::JUDGE:
+					case Role::MERCHANT:
+						break;
+				}
 			}
 		}
-
-		// Draw intervention UI if active
+	
+		// Draw intervention UI with overlay if active
 		if (interventionState != InterventionState::NONE) {
+			// Draw a semi-transparent overlay over the entire game area
+			sf::RectangleShape overlay;
+			overlay.setSize(sf::Vector2f(window.getSize()));
+			overlay.setFillColor(sf::Color(0, 0, 0, 180)); // Semi-transparent black
+			window.draw(overlay);
+			
+			// Draw the intervention UI elements on top of the overlay
 			window.draw(interventionBox);
 			window.draw(interventionPromptText);
 			window.draw(yesButton);
@@ -1299,9 +1195,8 @@ void Window::render() {
 			window.draw(noButton);
 			window.draw(noButtonText);
 		}
-
+	
 		checkGameOver();
-
 	}
 
 	else if (screen == Screen::GameOver) {
