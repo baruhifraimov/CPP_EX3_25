@@ -19,6 +19,7 @@ class Game {
 		Player* target_player;
 		bool general_intervention;
 		bool judge_intervention;
+		Player* lastArrestedPlayer; // Pointer to track the last arrested player
 
 
 	public:
@@ -240,5 +241,11 @@ class Game {
 		 * @param value The new value for the flag
 		 */
 		void set_judge_intervention(bool value);
+
+		// Get the last arrested player
+		Player* getLastArrestedPlayer() const;
+
+		// Set the last arrested player
+		void setLastArrestedPlayer(Player* player);
 };
 }

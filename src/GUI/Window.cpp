@@ -639,6 +639,7 @@ void Window::handleEvents() {
                                 setErrorMessage(errorMessageText, "COUPED " + pendingTarget->getName());
                             } else if (pendingActionType == "bribe") {
                                 // judge_intervention flag is false.
+								pendingAttacker->getGame().set_judge_intervention(false);
                                 pendingAttacker->bribe(); // Player::bribe should also check its flag
                                 setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
                             }
@@ -718,6 +719,9 @@ void Window::handleEvents() {
 					}
 				}
 				else if (isButtonClicked(bribeButton, mp)) {
+					// reset flag
+					this->current_game->set_judge_intervention(false);
+
 					std::cout << "BRIBE action clicked!" << std::endl;
 					setErrorMessage(errorMessageText, "");  // Clear previous error
 					Player* attacker = current_game->get_current_player();
@@ -1087,6 +1091,7 @@ void Window::handleEvents() {
 						setErrorMessage(errorMessageText, "COUPED " + pendingTarget->getName());
 					} else if (pendingActionType == "bribe") {
 						// judge_intervention flag is false.
+						pendingAttacker->getGame().set_judge_intervention(false);
 						pendingAttacker->bribe(); // Player::bribe should also check its flag
 						setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
 					}

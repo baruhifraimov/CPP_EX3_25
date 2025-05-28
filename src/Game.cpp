@@ -248,49 +248,10 @@ void Game::set_judge_intervention(bool value) {
     judge_intervention = value;
 }
 
-// bool Game::ask_general_intervention(Player& general, Player& attacker, Player& target){
+Player* Game::getLastArrestedPlayer() const {
+    return lastArrestedPlayer;
+}
 
-// 	 std::cout << general.getName() << " (General), do you want to block " 
-//               << attacker.getName() << "'s coup on " << target.getName() 
-//               << "? (y/n): ";
-
-// 	char response;
-//     std::cin >> response;
-    
-//     if (response == 'y' || response == 'Y') {
-//         // General pays cost to block
-//         if (general.coins() >= 5) {
-//             general.addCoins(-5);
-//             this->add_coins(5);
-//             return true;
-//         } else {
-//             std::cout << "General doesn't have enough coins to block!" << std::endl;
-//             return false;
-//         }
-//     }
-    
-//     return false;
-// }
-
-// bool Game::ask_judge_intervention(Player& general, Player& attacker){
-
-// 	 std::cout << general.getName() << " (Judge), do you want to block " 
-//               << attacker.getName() << "'s bribe action? (y/n): ";
-
-// 	char response;
-//     std::cin >> response;
-    
-//     if (response == 'y' || response == 'Y') {
-//         // General pays cost to block
-//         if (general.coins() >= 5) {
-//             general.addCoins(-5);
-//             this->add_coins(5);
-//             return true;
-//         } else {
-//             std::cout << "Judge doesn't have enough coins to block!" << std::endl;
-//             return false;
-//         }
-//     }
-    
-//     return false;
-// }
+void Game::setLastArrestedPlayer(Player* player) {
+    lastArrestedPlayer = player;
+}

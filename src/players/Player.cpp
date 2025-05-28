@@ -105,10 +105,30 @@ using namespace coup;
 		 void Player::arrest(Player& o) { 
 			this->isMyTurn(); // Check if its my turn
 			if(!IsOver10Coins()){
-				if(is_operation_blocked(Operation::ARREST)){
+
+				if(is_operation_blocked(Operation::DISABLE_ARREST)){
 					throw std::runtime_error("Player arrest action is disabled, illegal move");
 				}
+
+				if(this->num_coins < 2){
+					throw std::runtime_error("Not enough coins to execute Arrest (need 2)");
+				}
+				else if(this->getRole() == Role::MERCHANT){
+					if(this->num_coins < 3){
+						throw std::runtime_error("Merchants need 3 coins to execute Arrest");
+					}
+				}
+
+				// Check if this player was the last arrested player
+				if (current_game->getLastArrestedPlayer() == &o) {
+					throw std::runtime_error("Cannot arrest the same player twice in succession");
+				}
+
+				 // Set this player as the last arrested player
+				 current_game->setLastArrestedPlayer(&o);
+
 				o.block_operation_with_timer(Operation::ARREST);
+
 				// If the player we want to attack is Merchant, take 2 and add to bank
 				if(o.getRole() == Role::MERCHANT){
 					o.addCoins(-2);
@@ -127,13 +147,12 @@ using namespace coup;
 					this->addCoins(1);
 				}
 
-				// if (is_operation_blocked(Operation::EXTRA_TURN))
-				// {
-				// 	unblock_operation(Operation::EXTRA_TURN);
-				// }
-				// else{
-				// 	this->current_game->next_turn(); // next round
-				// }
+				if (is_operation_blocked(Operation::EXTRA_TURN)){
+				unblock_operation(Operation::EXTRA_TURN);
+				}
+				else{
+					this->current_game->next_turn(); // next round
+				}
 			}
 			else{
 				throw std::runtime_error("Arrest is disabled, got over or equal to 10 coins, illegal move");

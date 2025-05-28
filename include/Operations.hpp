@@ -13,7 +13,8 @@ enum class Operation : u_int8_t {
     ARREST   = 0x08,  // 00001000
     SANCTION = 0x10,  // 00010000
     // COUP     = 0x20,  // 00100000 [ARCHIVED, it got handled by the judge]
-	EXTRA_TURN = 0x40 // 01000000
+	EXTRA_TURN = 0x40, // 01000000
+	DISABLE_ARREST = 0x80 // 10000000
 
 };
 
