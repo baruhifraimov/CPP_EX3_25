@@ -589,30 +589,30 @@ void Window::handleEvents() {
 					auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
 					
 					if (isButtonClicked(yesButton, mp)) {
-                        // Current intervenor wants to block
                         Player* intervenor = pendingInterventors[currentInterventorIndex];
-                        
                         try {
                             if (interventionState == InterventionState::WAITING_GENERAL) {
-                                // General blocks coup - pass true for shouldBlock
                                 if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
+                                    current_game->set_general_intervention(true); // IMPORTANT: Set flag
                                     errorMessageText.setString(intervenor->getName() + " (General) blocked the coup!");
                                     interventionState = InterventionState::NONE;
-									current_game->next_turn();
-                                    return;  // Action blocked, done
+                                    current_game->next_turn(); // Coup attempt (blocked) consumes the turn
+                                    return;  // Action blocked and handled.
                                 }
                             } else if (interventionState == InterventionState::WAITING_JUDGE) {
-								// Judge blocks bribe - same pattern as General blocking coup
-								if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
-									errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
-									interventionState = InterventionState::NONE;
-									// Call next_turn() - the player's turn is over since bribe was blocked
-									current_game->next_turn();
-									return;  // Action blocked, done - NO re-execution
-								}
-							}
+                                if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
+                                    current_game->set_judge_intervention(true); // IMPORTANT: Set flag
+                                    errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
+                                    interventionState = InterventionState::NONE;
+                                    current_game->next_turn(); // Bribe attempt (blocked) consumes the turn
+                                    return;  // Action blocked and handled.
+                                }
+                            }
                         } catch (const std::exception& e) {
                             errorMessageText.setString("Intervention failed: " + std::string(e.what()));
+                            // If intervention itself fails, ensure flags are not incorrectly true
+                            if (interventionState == InterventionState::WAITING_GENERAL) current_game->set_general_intervention(false);
+                            if (interventionState == InterventionState::WAITING_JUDGE) current_game->set_judge_intervention(false);
                         }
                     }
 					else if (isButtonClicked(noButton, mp)) {
@@ -629,23 +629,24 @@ void Window::handleEvents() {
 					// Move to next intervenor or execute action
 					currentInterventorIndex++;
 					if (currentInterventorIndex >= pendingInterventors.size()) {
-						// No more intervenors, original action was successful
-						try {
-							if (pendingActionType == "coup") {
-								pendingAttacker->coup(*pendingTarget);
-								errorMessageText.setString("COUPED " + pendingTarget->getName());
-							} else if (pendingActionType == "bribe") {
-								// Bribe was already executed at the start
-								// No need to call bribe() again
-								errorMessageText.setString("BRIBE SUCCESSFUL - EXTRA TURN");
-								// Don't call next_turn() - player gets an extra turn
-								// The coins were already deducted when the action started
-							}
-						} catch (const std::exception& e) {
-							errorMessageText.setString("ERROR: " + std::string(e.what()));
-						}
-						interventionState = InterventionState::NONE;
-					} else {
+                        // No more intervenors, or all said "No".
+                        // The intervention flag (e.g., general_intervention) should be false here.
+                        try {
+                            if (pendingActionType == "coup") {
+                                // general_intervention flag is false, Player::coup will proceed with elimination.
+                                pendingAttacker->coup(*pendingTarget);
+                                // Message might be redundant if Player::coup handles its own state or turn changes view
+                                errorMessageText.setString("COUPED " + pendingTarget->getName());
+                            } else if (pendingActionType == "bribe") {
+                                // judge_intervention flag is false.
+                                pendingAttacker->bribe(); // Player::bribe should also check its flag
+                                errorMessageText.setString("BRIBE SUCCESSFUL - EXTRA TURN");
+                            }
+                        } catch (const std::exception& e) {
+                            errorMessageText.setString("ERROR: " + std::string(e.what()));
+                        }
+                        interventionState = InterventionState::NONE;
+                    } else {
 						// Ask next intervenor
 						Player* nextIntervenor = pendingInterventors[currentInterventorIndex];
 						if (interventionState == InterventionState::WAITING_GENERAL) {
@@ -876,48 +877,67 @@ void Window::handleEvents() {
 							}
 							
 							else if (pendingAction == "coup") {
+                                Player* currentPlayer = current_game->get_current_player();
+                                if (!currentPlayer) { /* Should not happen if logic is correct */ return; }
 
-								// Reset the general intervention flag
-								current_game->set_general_intervention(false);
-								
-								// Check for General intervention before executing coup
-								auto generals = current_game->get_generals();
-								std::vector<Player*> eligibleGenerals;
-								
-								// Find generals who can intervene (not the attacker, have 5+ coins)
-								for (Player* general : generals) {
-									if (general != currentPlayer && general->coins() >= 5) {
-										eligibleGenerals.push_back(general);
-									}
-								}
-								
-								if (!eligibleGenerals.empty()) {
-									// Start intervention process
-									interventionState = InterventionState::WAITING_GENERAL;
-									pendingInterventors = eligibleGenerals;
-									currentInterventorIndex = 0;
-									pendingAttacker = currentPlayer;
-									pendingTarget = &current_game->get_target_player();
-									pendingActionType = "coup";
-									
-									// Set up intervention prompt
-									interventionPromptText.setString(
-										pendingInterventors[0]->getName() + " (General), do you want to block " +
-										pendingAttacker->getName() + "'s coup on " + pendingTarget->getName() + "?"
-									);
-									
-									// Don't execute coup yet - wait for intervention decision
-									actionState = ActionState::CHOOSING_ACTION;
-									setActionPrompt("CHOOSE ACTION");
-									pendingAction = "";
-									return;  // Exit without executing coup
-								}
-								
-								// No eligible generals, execute coup normally
-								currentPlayer->coup(current_game->get_target_player());
-								std::cout << "Coup performed on " << current_game->get_target_player().getName() << std::endl;
-								errorMessageText.setString("COUPED " + current_game->get_target_player().getName());
-							}
+                                // Attempt to pay the coup cost immediately
+                                try {
+                                    currentPlayer->pay_coup_cost(); // DEDUCTS COINS NOW
+                                } catch (const std::exception& e_cost) {
+                                    std::cout << "Coup attempt failed (cost): " << e_cost.what() << std::endl;
+                                    errorMessageText.setString("ERROR: " + std::string(e_cost.what()));
+                                    actionState = ActionState::CHOOSING_ACTION; // Reset state
+                                    setActionPrompt("CHOOSE ACTION");
+                                    pendingAction = "";
+                                    break; // Exit player loop, action failed
+                                }
+
+                                auto generals = current_game->get_generals();
+                                std::vector<Player*> eligibleGenerals;
+                                
+                                for (Player* general : generals) {
+                                    if (general != currentPlayer && general->coins() >= 5) {
+                                        eligibleGenerals.push_back(general);
+                                    }
+                                }
+                                
+                                if (!eligibleGenerals.empty()) {
+                                    // Generals can intervene. Start UI intervention process.
+                                    // Player::coup() is NOT called here.
+                                    interventionState = InterventionState::WAITING_GENERAL;
+                                    pendingInterventors = eligibleGenerals;
+                                    currentInterventorIndex = 0;
+                                    pendingAttacker = currentPlayer;
+                                    pendingTarget = &current_game->get_target_player(); // Ensure target is correctly set
+                                    pendingActionType = "coup";
+                                    
+                                    interventionPromptText.setString(
+                                        pendingInterventors[0]->getName() + " (General), do you want to block " +
+                                        pendingAttacker->getName() + "'s coup on " + pendingTarget->getName() + "?"
+                                    );
+                                    
+                                    actionState = ActionState::CHOOSING_ACTION; // Or a specific intervention UI state
+                                    setActionPrompt("CHOOSE ACTION"); // Or "Intervention..."
+                                    pendingAction = ""; // Handled by intervention
+                                    return;  // Exit to let intervention UI run
+                                }
+                                else {
+                                    // No eligible generals, execute coup normally.
+                                    // general_intervention flag is false.
+                                    try {
+                                        currentPlayer->coup(current_game->get_target_player());
+                                        std::cout << "Coup performed on " << current_game->get_target_player().getName() << std::endl;
+                                        errorMessageText.setString("COUPED " + current_game->get_target_player().getName());
+                                    } catch (const std::exception& e) {
+                                        std::cout << "Coup failed: " << e.what() << std::endl;
+                                        errorMessageText.setString("ERROR: " + std::string(e.what()));
+                                    }
+                                    // Reset state after action
+                                    actionState = ActionState::CHOOSING_ACTION;
+                                    setActionPrompt("CHOOSE ACTION");
+                                    pendingAction = "";
+                                }
+                            }
 							// else if (pendingAction == "bribe") {
 							// 	// Check for Judge intervention before executing bribe
 							// 	auto judges = current_game->get_judges();
@@ -1018,27 +1038,30 @@ void Window::handleEvents() {
 			auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
 			
 			if (isButtonClicked(yesButton, mp)) {
-				// Current intervenor wants to block
 				Player* intervenor = pendingInterventors[currentInterventorIndex];
-				
 				try {
 					if (interventionState == InterventionState::WAITING_GENERAL) {
-						// General blocks coup - pass true for shouldBlock
 						if (dynamic_cast<General*>(intervenor)->undo(*pendingAttacker, *pendingTarget, true)) {
+							current_game->set_general_intervention(true); // IMPORTANT: Set flag
 							errorMessageText.setString(intervenor->getName() + " (General) blocked the coup!");
 							interventionState = InterventionState::NONE;
-							return;  // Action blocked, done
+							current_game->next_turn(); // Coup attempt (blocked) consumes the turn
+							return;  // Action blocked and handled.
 						}
 					} else if (interventionState == InterventionState::WAITING_JUDGE) {
-						// Judge blocks bribe - pass true for shouldBlock
 						if (dynamic_cast<Judge*>(intervenor)->undo(*pendingAttacker, true)) {
+							current_game->set_judge_intervention(true); // IMPORTANT: Set flag
 							errorMessageText.setString(intervenor->getName() + " (Judge) blocked the bribe!");
 							interventionState = InterventionState::NONE;
-							return;  // Action blocked, done
+							current_game->next_turn(); // Bribe attempt (blocked) consumes the turn
+							return;  // Action blocked and handled.
 						}
 					}
 				} catch (const std::exception& e) {
 					errorMessageText.setString("Intervention failed: " + std::string(e.what()));
+					// If intervention itself fails, ensure flags are not incorrectly true
+					if (interventionState == InterventionState::WAITING_GENERAL) current_game->set_general_intervention(false);
+					if (interventionState == InterventionState::WAITING_JUDGE) current_game->set_judge_intervention(false);
 				}
 			}
 			else if (isButtonClicked(noButton, mp)) {
@@ -1055,14 +1078,18 @@ void Window::handleEvents() {
 			// Move to next intervenor or execute action
 			currentInterventorIndex++;
 			if (currentInterventorIndex >= pendingInterventors.size()) {
-				// No more intervenors, execute the original action
+				// No more intervenors, or all said "No".
+				// The intervention flag (e.g., general_intervention) should be false here.
 				try {
 					if (pendingActionType == "coup") {
+						// general_intervention flag is false, Player::coup will proceed with elimination.
 						pendingAttacker->coup(*pendingTarget);
+						// Message might be redundant if Player::coup handles its own state or turn changes view
 						errorMessageText.setString("COUPED " + pendingTarget->getName());
 					} else if (pendingActionType == "bribe") {
-						pendingAttacker->bribe();
-						errorMessageText.setString("BRIBE SUCCESSFUL");
+						// judge_intervention flag is false.
+						pendingAttacker->bribe(); // Player::bribe should also check its flag
+						errorMessageText.setString("BRIBE SUCCESSFUL - EXTRA TURN");
 					}
 				} catch (const std::exception& e) {
 					errorMessageText.setString("ERROR: " + std::string(e.what()));

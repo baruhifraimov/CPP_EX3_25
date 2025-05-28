@@ -179,49 +179,37 @@ using namespace coup;
 		 }
 		
 		 void Player::coup(Player& o) {
-			this->isMyTurn(); // Check if its my turn
-			// if(!IsOver10Coins()){
-				if(this->coins()<7){
-					throw std::runtime_error("Not enough coins to execute Coup");
-				}
-				this->addCoins(-7);
-				current_game->add_coins(7);
+            this->isMyTurn(); // Check if its my turn
+            if(this->coins()<7){
+                throw std::runtime_error("Not enough coins to execute Coup");
+            }
 
-				// Check with all the generals if they want to undo coup
-				if(current_game->check_general_intervention(*this,o)){
-					// Coup was blocked by a General
-					// Coins already spent, but target is not eliminated
-					if (is_operation_blocked(Operation::EXTRA_TURN)){
-						unblock_operation(Operation::EXTRA_TURN);
-						return;
-					}
-					else{
-						this->current_game->next_turn(); // next round
-						return;
-					}
-				}
-				else{
-				// No General interventio - proceed with coup
-				o.is_active = false; // set player non-active
-				this->current_game->removePlayer(o.getName());
+            this->addCoins(-7); // Always deduct coins for attempting coup
+            current_game->add_coins(7); // Coins go to treasury or are just removed
 
-				if (is_operation_blocked(Operation::EXTRA_TURN))
-				{
-					unblock_operation(Operation::EXTRA_TURN);
-				}
-				else{
-					this->current_game->next_turn(); // next round
-				}
-			}
-			// }
-			// else{
-			// 	throw std::runtime_error("Coup is disabled, got over or equal to 10 coins, illegal move");
-			// }
-		 }
+            // Check if a general intervention has ALREADY been flagged as successful
+            if(current_game->get_general_intervention()){
+                // Coup was blocked (flag was set by Window.cpp). Coins are spent.
+                // Turn advancement should be handled by Window.cpp when the block occurs.
+                if (is_operation_blocked(Operation::EXTRA_TURN)){ // This logic might be for other scenarios
+                    unblock_operation(Operation::EXTRA_TURN);
+                }
+					this->current_game->next_turn(); // Blocked coup, next player's turn
+            }
+            else{
+                // No successful general intervention was flagged. Proceed with elimination.
+                o.is_active = false; // set player non-active
+                this->current_game->removePlayer(o.getName());
 
-		// void Player::undo(Player& o){
-		// 	throw std::runtime_error("This class role undo actions"); // default cannot play 'undo'
-		// }
+                if (is_operation_blocked(Operation::EXTRA_TURN)) {
+                    unblock_operation(Operation::EXTRA_TURN);
+                    // Player gets an extra turn, so don't call next_turn here.
+                }
+                else{
+                    this->current_game->next_turn(); // Normal coup, next player's turn
+                }
+            }
+         }
 
 		bool Player::validate_active(){
 			if(!this->is_active){
@@ -309,4 +297,13 @@ using namespace coup;
 					}
 				}
 			}
+		}
+
+		void Player::pay_coup_cost() {
+			this->isMyTurn(); // Ensure it's the player's turn
+			if (this->coins() < 7) {
+				throw std::runtime_error("Not enough coins (need 7) to attempt Coup");
+			}
+			this->addCoins(-7);         // Deduct cost from player
+			current_game->add_coins(7); // Add coins to treasury (or however it's handled)
 		}

@@ -248,6 +248,15 @@ class Player{
 		 */
 		void block_operation_with_timer(Operation op);
 
+		/**
+         * @brief Deducts the cost of a coup (7 coins) from the player.
+         * Throws a runtime_error if the player cannot afford the coup
+         * or if it's not their turn.
+		 * 
+		 * THIS ADDED ONLY FOR THE WINDOW.HPP GUI, THE GUI GIVES PROBLEMS WHEN TRYING TO PAY COUP
+         */
+        void pay_coup_cost();
+
 	// Protected methods, hidden from the public
 	protected:
 		// Field to track block timers for each operation
