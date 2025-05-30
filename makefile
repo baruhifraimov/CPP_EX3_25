@@ -79,6 +79,8 @@ $(OBJ)%.o: $(TST)%.cpp
 # Build and run tests
 test: TestRunner
 	@echo "Running tests..."
+	clear
+	./TestRunner
 
 # Test executable
 TestRunner: $(TST_OBJS)
@@ -96,6 +98,6 @@ valgrind: Main
 
 # Clean target
 clean:
-	rm -rf Main GUI SFML $(OBJ)*.o coup_game
+	rm -rf Main GUI SFML $(OBJ)*.o coup_game TestRunner
 
 .PHONY: all Main GUI SFML test run run-gui run-sfml valgrind clean debug check-player

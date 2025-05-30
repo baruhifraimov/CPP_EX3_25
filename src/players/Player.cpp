@@ -110,14 +110,14 @@ using namespace coup;
 					throw std::runtime_error("Player arrest action is disabled, illegal move");
 				}
 
-				if(this->num_coins < 2){
-					throw std::runtime_error("Not enough coins to execute Arrest (need 2)");
-				}
-				else if(this->getRole() == Role::MERCHANT){
-					if(this->num_coins < 3){
-						throw std::runtime_error("Merchants need 3 coins to execute Arrest");
-					}
-				}
+				// if(this->num_coins < 2){
+				// 	throw std::runtime_error("Not enough coins to execute Arrest (need 2)");
+				// }
+				// else if(this->getRole() == Role::MERCHANT){
+				// 	if(this->num_coins < 3){
+				// 		throw std::runtime_error("Merchants need 3 coins to execute Arrest");
+				// 	}
+				// }
 
 				// Check if this player was the last arrested player
 				if (current_game->getLastArrestedPlayer() == &o) {
@@ -180,9 +180,10 @@ using namespace coup;
 					current_game->add_coins(-1);
 				}
 				// Check if Judge, if yes use his special ability
-				// If casted on Judge, pay extra coin
+				// If casted on Judge, pay extra coin to treasury 
 				if(o.getRole() == Role::JUDGE){
 					this->addCoins(-1);
+					this->current_game->add_coins(+1);
 				}
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{

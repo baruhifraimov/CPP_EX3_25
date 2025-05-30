@@ -134,6 +134,19 @@ void Window::initializeComponents() {
 	nameInputText.setOrigin(0, 0); // Reset origin since we'll center dynamically in handleEvents
 	nameInputText.setPosition(window.getSize().x/2.f - 150, 160);
     
+	// Restart button for AskNames screen
+	restartButton.setSize(sf::Vector2f(120, 40));
+	restartButton.setFillColor(sf::Color(59, 89, 152)); // Same blue as Play Again button
+	restartButton.setOutlineThickness(2);
+	restartButton.setOutlineColor(sf::Color(255, 255, 255)); // White outline
+	restartButton.setPosition(window.getSize().x - 140, 20); // Top right corner
+	
+	restartButtonText.setFont(font);
+	restartButtonText.setString("RESTART");
+	restartButtonText.setCharacterSize(16);
+	restartButtonText.setFillColor(CREAM_TEXT); // Same cream text color
+	centerTextInButton(restartButtonText, restartButton);
+	
     // NEXT button (hidden until last name entered)
 	nextButton.setSize({150, 50});  // Slightly wider for retro look
 	nextButton.setFillColor(sf::Color(59, 89, 152));  // Classic blue color
@@ -510,6 +523,12 @@ void Window::handleEvents() {
 			if (namesComplete) {
 			  if (ev.type==sf::Event::MouseButtonPressed) {
 				auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
+				
+				if (isButtonClicked(restartButton, mp)) {
+					resetGame();
+					return; // Exit handler after reset
+				}
+
 				if (isButtonClicked(nextButton,mp)) {
 				  current_game->start_game();
 				  screen = Screen::Play;
@@ -528,10 +547,6 @@ void Window::handleEvents() {
 				}
 				nameInputText.setString(nameInput);
 				
-				// // Re-center the name input text after changing its content
-				// sf::FloatRect nameInputBounds = nameInputText.getLocalBounds();
-				// nameInputText.setOrigin(nameInputBounds.width/2.f, 0);
-				// nameInputText.setPosition(window.getSize().x/2.f, 160);
 			  }
 		  
 			// 2) ENTER to register one name
@@ -1071,6 +1086,15 @@ void Window::render() {
     }
 	else if (screen==Screen::AskNames) {
 		window.draw(titleText);
+
+		// Draw restart button with hover effect
+		if (restartButton.getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y)) {
+			restartButton.setFillColor(sf::Color(49, 79, 142)); // Darker blue when hovering
+		} else {
+			restartButton.setFillColor(sf::Color(59, 89, 152)); // Normal blue
+		}
+		window.draw(restartButton);
+		window.draw(restartButtonText);
 
         window.draw(namePrompt);
         window.draw(nameInputText);

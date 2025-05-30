@@ -45,6 +45,10 @@ private:
     bool namesComplete = false;
     sf::RectangleShape nextButton, nextButtonShadow;
     sf::Text            nextButtonText;
+
+    // Restart button components
+    sf::RectangleShape restartButton;
+    sf::Text restartButtonText;
     
     // --- play screen ---
     sf::Text currentPlayerRoleText;

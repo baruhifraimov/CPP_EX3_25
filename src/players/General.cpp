@@ -11,16 +11,17 @@ bool General::undo(Player& attacker, Player& target, bool shouldBlock) {
     
     if (shouldBlock) {
         // General pays cost to block
-        if (this->coins() >= 5) {
+            try{
             this->addCoins(-5);
+            }catch (const std::exception& e){
+                std::cout << "General doesn't have enough coins to block!" << std::endl;
+                this->getGame().set_general_intervention(false);
+                return false;
+            }
             this->getGame().add_coins(5);
             this->getGame().set_general_intervention(true);
             return true;
-        } else {
-            std::cout << "General doesn't have enough coins to block!" << std::endl;
-            this->getGame().set_general_intervention(false);
-            return false;
-        }
+        
     }
     
     return false;
