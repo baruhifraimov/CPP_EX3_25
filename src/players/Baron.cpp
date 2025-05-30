@@ -1,3 +1,4 @@
+// baruh.ifraimov@gmail.com
 #include <iostream>
 #include "../../include/players/Baron.hpp"
 // if attacked by 'sanction', recieve 1 coin; TODO

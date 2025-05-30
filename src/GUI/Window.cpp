@@ -1,3 +1,4 @@
+// baruh.ifraimov@gmail.com
 #include "../../include/GUI/Window.hpp"
 
 #include "../../include/players/Player.hpp"

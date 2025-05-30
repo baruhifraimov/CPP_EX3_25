@@ -1,5 +1,4 @@
 # baruh.ifraimov@gmail.com
-
 # Basic Setup
 CXX = clang++
 CXXFLAGS = -Wall -std=c++17 -ggdb -I$(INC) -I$(PLYR)
@@ -31,10 +30,14 @@ TST_HDRS = $(INC)doctest.h $(INC)Game.hpp $(PLYR)Player.hpp $(PLYR)Governor.hpp 
 $(shell mkdir -p $(OBJ))
 
 # Default target
-all: Main GUI SFML TestRunner
+all: GUI SFML TestRunner mMain
 
-# Main targets
-Main: $(MAIN_OBJS)
+# Build and run the GUI with make Main 
+Main: GUI SFML
+	./GUI
+
+# mMain targets
+mMain: $(MAIN_OBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
 
 
@@ -93,10 +96,12 @@ TestRunner: $(TST_OBJS)
 # Valgrind target
 valgrind: GUI Main
 	@echo "Make sure to run 'ulimit -n 1024' before running valgrind"
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./GUI
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./GUI
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./TestRunner
+
 
 # Clean target
 clean:
-	rm -rf Main GUI SFML $(OBJ)*.o coup_game TestRunner
+	rm -rf Main GUI SFML $(OBJ)*.o coup_game TestRunner mMain ./obj
 
-.PHONY: all Main GUI SFML test run run-gui run-sfml valgrind clean debug check-player
+.PHONY: all Main GUI SFML test run run-gui run-sfml valgrind clean debug check-player mMain

@@ -1,3 +1,4 @@
+// baruh.ifraimov@gmail.com
 #pragma once
 
 #include <iostream>
@@ -14,6 +15,7 @@ class Player;
 class Game {
 	private:
 		std::vector<Player*> player_objects; 
+		std::vector<Player*> dead_player_objects; // because player_objects gave memmory leaks so this will prevent it
 		int cur_round,index;
 		int treasury; // coins bank
 		Player* target_player;
@@ -32,17 +34,19 @@ class Game {
 				 treasury(INITIAL_TREASURY), // default 6 coins (cause 6 players max)
 				 target_player(nullptr),
 				 general_intervention(false),
-				 judge_intervention(false) {
+				 judge_intervention(false),
+				 lastArrestedPlayer(nullptr){
 
 			// Reserve space for maximum number of players to avoid reallocations
 			player_objects.reserve(MAX_PLAYERS);
+			dead_player_objects.reserve(MAX_PLAYERS);
 		}
-		// Copy constructor
-		Game(Game &o) : player_objects(o.player_objects), cur_round(o.cur_round), index(o.index), treasury(o.treasury), target_player(o.target_player), general_intervention(o.general_intervention), judge_intervention(o.judge_intervention){
-
-		}
-		// Destructor
+		// dtor
 		~Game();
+
+		// Disable copy constructor and operator=
+		Game(const Game&) = delete;
+		Game& operator=(const Game&) = delete;
 
 		// Copy assignment operator
 		Game& operator=(Game& o)
@@ -59,6 +63,7 @@ class Game {
 			this->target_player = o.target_player;
 			this->general_intervention = o.general_intervention;
 			this->judge_intervention = o.judge_intervention;
+			lastArrestedPlayer = o.lastArrestedPlayer;
 			
 			return *this;
 

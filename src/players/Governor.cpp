@@ -1,3 +1,4 @@
+// baruh.ifraimov@gmail.com
 #include <iostream>
 #include "../../include/players/Governor.hpp"
 #include "../../include/players/Player.hpp"

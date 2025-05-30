@@ -1,3 +1,4 @@
+// baruh.ifraimov@gmail.com
 #pragma once
 
 // can be up to 6 players, default is 2

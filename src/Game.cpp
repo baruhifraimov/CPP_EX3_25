@@ -1,3 +1,4 @@
+// baruh.ifraimov@gmail.com
 #include <iostream>
 #include <vector>
 #include "Role.hpp"
@@ -13,7 +14,11 @@ Game::~Game() {
     for (Player* player : player_objects) {
         delete player;
     }
+	for (Player* player : dead_player_objects) {
+        delete player;
+    }
 	player_objects.clear();
+	dead_player_objects.clear();
 }
 
 void Game::reset() {
@@ -21,8 +26,12 @@ void Game::reset() {
 	for (Player* player : player_objects) {
         delete player;
 	}
+	for (Player* player : dead_player_objects) {
+        delete player;
+    }
 	// Reset game state
     player_objects.clear();
+	dead_player_objects.clear();
     cur_round = 0;
     index = 0;
     treasury = INITIAL_TREASURY;
@@ -119,6 +128,7 @@ void Game::removePlayer(std::string name){
 				this->index--;
 			}
 			player_objects.at(i)->setActive(false);
+			dead_player_objects.emplace_back(player_objects.at(i)); // Take the player to his coffin
 			this->player_objects.erase(begin(player_objects)+i);
 			return;
 		}

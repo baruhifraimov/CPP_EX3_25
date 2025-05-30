@@ -1,3 +1,4 @@
+// baruh.ifraimov@gmail.com
 #include "GUI/Window.hpp"
 
 int main() {

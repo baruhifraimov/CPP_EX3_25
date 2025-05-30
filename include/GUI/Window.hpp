@@ -1,3 +1,4 @@
+// baruh.ifraimov@gmail.com
 #pragma once
 
 #include <SFML/Graphics.hpp>
