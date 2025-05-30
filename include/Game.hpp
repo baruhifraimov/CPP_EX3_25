@@ -33,14 +33,16 @@ class Game {
 				 target_player(nullptr),
 				 general_intervention(false),
 				 judge_intervention(false) {
-			
+
+			// Reserve space for maximum number of players to avoid reallocations
+			player_objects.reserve(MAX_PLAYERS);
 		}
 		// Copy constructor
 		Game(Game &o) : player_objects(o.player_objects), cur_round(o.cur_round), index(o.index), treasury(o.treasury), target_player(o.target_player), general_intervention(o.general_intervention), judge_intervention(o.judge_intervention){
 
 		}
 		// Destructor
-		~Game() = default;
+		~Game();
 
 		// Copy assignment operator
 		Game& operator=(Game& o)

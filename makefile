@@ -31,7 +31,7 @@ TST_HDRS = $(INC)doctest.h $(INC)Game.hpp $(PLYR)Player.hpp $(PLYR)Governor.hpp 
 $(shell mkdir -p $(OBJ))
 
 # Default target
-all: Main
+all: Main GUI SFML TestRunner
 
 # Main targets
 Main: $(MAIN_OBJS)
@@ -79,7 +79,6 @@ $(OBJ)%.o: $(TST)%.cpp
 # Build and run tests
 test: TestRunner
 	@echo "Running tests..."
-	clear
 	./TestRunner
 
 # Test executable
@@ -92,9 +91,9 @@ TestRunner: $(TST_OBJS)
 
 
 # Valgrind target
-valgrind: Main
+valgrind: GUI Main
 	@echo "Make sure to run 'ulimit -n 1024' before running valgrind"
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./Main
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./GUI
 
 # Clean target
 clean:

@@ -18,7 +18,7 @@
 #include <random>
 
 const sf::Color CREAM_TEXT(0xF5, 0xF1, 0xD0); // #F5F1D0 - Soft ivory/cream color
-
+bool DEBUG = false; // enable skip button
 using namespace coup;
 
 Window::Window(Game& current_game) : window(sf::VideoMode(768,672), "COUP Game"),current_game(&current_game) {
@@ -32,6 +32,9 @@ Window::Window(Game& current_game) : window(sf::VideoMode(768,672), "COUP Game")
 }
 
 Window::~Window() {
+    // No need to delete current_game if it's managed elsewhere
+    // Clear any remaining resources
+    pendingInterventors.clear();
 }
 
 void Window::initializeComponents() {
@@ -104,7 +107,6 @@ void Window::initializeComponents() {
 	inputText.setFillColor(sf::Color::Yellow);
 
 	// Center the input text under the prompt
-	sf::FloatRect inputBounds = inputText.getLocalBounds();
 	inputText.setOrigin(0, 0); // Reset origin since we'll center dynamically in render
 	inputText.setPosition(window.getSize().x/2.f, 160);
 
@@ -377,6 +379,19 @@ void Window::initializeComponents() {
 	noButtonText.setFillColor(CREAM_TEXT);
 	centerTextInButton(noButtonText, noButton);
 
+	// Skip turn button (bottom right corner of Play screen)
+    skipButton.setSize(sf::Vector2f(120, 50));
+    skipButton.setFillColor(sf::Color(100, 100, 100)); // Gray color for skip
+    skipButton.setOutlineThickness(2);
+    skipButton.setOutlineColor(sf::Color(255, 255, 255)); // White outline
+    skipButton.setPosition(window.getSize().x - 140, window.getSize().y - 70); // Right bottom corner
+    
+    skipButtonText.setFont(font);
+    skipButtonText.setString("SKIP");
+    skipButtonText.setCharacterSize(20);
+    skipButtonText.setFillColor(CREAM_TEXT); // Same cream text color
+    centerTextInButton(skipButtonText, skipButton);
+
 	// --- GameOver screen setup ---
 	// Game Over screen components
     // Semi-transparent background overlay
@@ -401,14 +416,7 @@ void Window::initializeComponents() {
     winnerText.setFillColor(CREAM_TEXT);
     winnerText.setPosition(window.getSize().x/2.f, 250); // Positioning will be done when we know the winner
     
-    // Trophy icon
-    trophyTexture.loadFromFile("assets/trophy.png"); // Make sure to have this image in your assets folder
-    trophySprite.setTexture(trophyTexture);
-    trophySprite.setScale(0.5f, 0.5f); // Adjust scale as needed
-    // Center the trophy
-    sf::FloatRect spriteBounds = trophySprite.getLocalBounds();
-    trophySprite.setOrigin(spriteBounds.width/2, spriteBounds.height/2);
-    trophySprite.setPosition(window.getSize().x/2.f, 350);
+
     
     // Play Again button
     playAgainButton.setSize(sf::Vector2f(200, 60));
@@ -602,6 +610,7 @@ if (interventionState != InterventionState::NONE) {
     // Only handle intervention buttons during intervention
     if (ev.type == sf::Event::MouseButtonPressed) {
         auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
+
         
         // Track whether a valid button was clicked
         bool validButtonClicked = false;
@@ -693,7 +702,25 @@ if (interventionState != InterventionState::NONE) {
 			// NORMAL GAME PROCESSING - only when not in intervention
 			if (ev.type == sf::Event::MouseButtonPressed) {
 				auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
+
+		// Check for Skip button click - add this with the other action buttons
+		if(DEBUG){
+		if (isButtonClicked(skipButton, mp)) {
+			std::cout << "SKIP action clicked!" << std::endl;
+			setErrorMessage(errorMessageText, "");  // Clear previous error
+			try {
+				// Skip the current player's turn
+				current_game->next_turn();
+				setErrorMessage(errorMessageText, "Turn skipped");
+			} catch (const std::exception& e) {
+				std::cout << "Skip failed: " << e.what() << std::endl;
+				setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
+			}
+		}
+	}
 				if (actionState == ActionState::SELECTING_TARGET) {
+
+					
         if (isButtonClicked(gatherButton, mp) || 
             isButtonClicked(taxButton, mp) || 
             isButtonClicked(bribeButton, mp) || 
@@ -893,15 +920,6 @@ if (interventionState != InterventionState::NONE) {
 					// Check if mouse click is within this player's area
 					if (playerArea.contains(mp)) {
 						current_game->set_target_player(*players[i]);
-						
-						// // Can't target yourself (for most actions)
-						// if (targetPlayer == currentPlayer && (pendingAction == "sanction" || pendingAction == "coup")) {
-						// 	setErrorMessage(errorMessageText, "ERROR: Cannot target yourself!");
-						// 	actionState = ActionState::CHOOSING_ACTION;
-						// 	actionPromptText.setString("CHOOSE ACTION");
-						// 	pendingAction = "";
-						// 	break;
-						// }
 						
 						// Execute the pending action on the selected target
 						try {
@@ -1132,10 +1150,19 @@ void Window::render() {
 			sf::Text playerInfo;
 			playerInfo.setFont(font);
 			playerInfo.setCharacterSize(20);
-		
-			// ALWAYS include coin count
-			std::string playerText = players[i]->getName() + " " + to_string(players[i]->getRole()) + " (" + std::to_string(players[i]->coins()) + " coins)";
-		
+			std::string playerText;
+			if(DEBUG){
+			// ALWAYS include coin count	
+			playerText = players[i]->getName() + " " + to_string(players[i]->getRole()) + " (" + std::to_string(players[i]->coins()) + " coins)";
+			}
+			else{
+				if(players[i] == currentPlayer){
+					playerText = players[i]->getName() + " " + to_string(players[i]->getRole()) + " (" + std::to_string(players[i]->coins()) + " coins)";
+				}
+				else{
+					playerText = players[i]->getName() + " " + to_string(players[i]->getRole());
+				}	
+			}
 			// Highlight current player or show clickable state
 			if (players[i] == currentPlayer) {
 				playerInfo.setFillColor(sf::Color(255,215,0)); // gold
@@ -1159,6 +1186,18 @@ void Window::render() {
 	
 		// Only draw action buttons if NOT in intervention state
 		if (interventionState == InterventionState::NONE) {
+
+			if(DEBUG){
+			// Draw Skip button in the bottom right corner
+            if (skipButton.getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y)) {
+                skipButton.setFillColor(sf::Color(80, 80, 80)); // Darker gray when hovering
+            } else {
+                skipButton.setFillColor(sf::Color(100, 100, 100)); // Normal gray
+            }
+            window.draw(skipButton);
+            window.draw(skipButtonText);
+		}
+
 			// Draw all the default action buttons at the bottom
 			window.draw(gatherButton);         
 			window.draw(gatherButtonText);     
@@ -1227,9 +1266,6 @@ void Window::render() {
 		// Draw the semi-transparent overlay
 		window.draw(gameOverBackground);
 		
-		
-		// Draw the trophy icon
-		window.draw(trophySprite);
 		
 		// Draw text elements
 		window.draw(gameOverText);

@@ -55,6 +55,10 @@ private:
     sf::RectangleShape actionPromptBox;
     sf::Text actionPromptText;
     sf::Text errorMessageText;
+    
+    // Skip buton
+    sf::RectangleShape skipButton;
+    sf::Text skipButtonText;
 
     // Default buttons (available to all players)
     sf::RectangleShape gatherButton, taxButton, bribeButton, arrestButton, sanctionButton, coupButton;
@@ -211,4 +215,3 @@ public:
     ~Window();
     void run();
 };
-

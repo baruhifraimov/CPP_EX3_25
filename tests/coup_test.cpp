@@ -1214,9 +1214,7 @@ TEST_CASE_FIXTURE(CoupTestFixture, "Test 23.5: Merchant abilities on correct tur
     CHECK(game.turn() == "Merchant");
     
     // Give merchant 3+ coins to test auto-bonus
-    merchant->addCoins(3);
-    int beforeAction = merchant->coins();
-    
+    merchant->addCoins(3);    
     // Merchant does action - turn advances and cycle completes
     merchant->gather();
     CHECK(game.turn() == "Gov"); // Back to Gov

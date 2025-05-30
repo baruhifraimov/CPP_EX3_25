@@ -9,13 +9,27 @@
 
 using namespace coup;
 
+Game::~Game() {
+    for (Player* player : player_objects) {
+        delete player;
+    }
+	player_objects.clear();
+}
+
 void Game::reset() {
     // Reset all game state to fresh values
+	for (Player* player : player_objects) {
+        delete player;
+	}
+	// Reset game state
     player_objects.clear();
     cur_round = 0;
     index = 0;
     treasury = INITIAL_TREASURY;
+    judge_intervention = false;
+    general_intervention = false;
 	target_player = nullptr;
+	lastArrestedPlayer = nullptr;
 }
 
 void Game::start_game() {
@@ -27,6 +41,10 @@ void Game::start_game() {
             " players; currently " + std::to_string(n)
         );
     }
+
+	// Compress vector to actual size to free unused memory
+    player_objects.shrink_to_fit();
+
     // reset turn counters
     this->cur_round = 0;
     this->index     = 0;
@@ -93,7 +111,7 @@ else{
 }
 
 void Game::removePlayer(std::string name){
-	for (size_t i = 0; i < this->player_objects.size(); i++)
+	for (int i = 0; i < (int)this->player_objects.size(); i++)
 	{	
 		// deletes the payer(name) from the players list (0 if true)
 		if(!this->player_objects.at(i)->getName().compare(name)){
@@ -137,7 +155,7 @@ void Game::next_turn(){
         this->winner();
     }
     
-    for (int i = 0; i < player_objects.size(); i++)
+    for (int i = 0; i < (int)player_objects.size(); i++)
     {
         if(player_objects.at(i)->getName() == this->turn() && player_objects.at(i)->getActive()) {
             player_objects[i]->update_block_timers();
