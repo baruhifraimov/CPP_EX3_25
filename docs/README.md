@@ -1,8 +1,11 @@
 # COUP Game (C++/SFML)
 
+![alt text](https://github.com/baruhifraimov/CPP_EX3_25/blob/main/docs/menu_ss.png "COUP MENU")
+#### VIDEO SHOWCASE: https://www.youtube.com/watch?v=-oafK0W6s24
 ## DISCLAIMER
 - The game has been tested on a Debian-based Linux distro.
 - The GUI was developed with assistance from AI.
+
 
 ## Game Description
 
@@ -46,8 +49,9 @@ The goal is to be the last player remaining by eliminating all other players thr
    - **Special Actions:**
      - **Baron:** Invest 3 coins to get 6 coins; gets compensation if sanctioned.
      - **Spy:** View coins or block arrests.
-     - **Governor:** Block tax actions.
-     - **General/Judge:** Intervene in Coup/Bribe attempts.
+     - **Governor:** Block tax actions. Tax is 3 coins gain.
+     - **General:** Intervene in Coup attempts (5 coins), if arrest no coins loss.
+     - **Judge:** Intervene in Bribe attempts. if attacked by sanction, attacker pays extra coin.
      - **Merchant:** Gets bonus coin if starting turn with 3+ coins; pays extra coin to the treasury if arrested.
 
 4. **Winning:**
