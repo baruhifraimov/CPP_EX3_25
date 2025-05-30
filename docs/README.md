@@ -1,7 +1,9 @@
 # COUP Game (C++/SFML)
 
-![alt text](https://github.com/baruhifraimov/CPP_EX3_25/blob/main/docs/menu_ss.png "COUP MENU")
-#### VIDEO SHOWCASE: https://www.youtube.com/watch?v=-oafK0W6s24
+![alt text](https://github.com/baruhifraimov/coup-game/blob/main/docs/Screenshot%202025-05-30%20at%2022.03.12.png "COUP MENU")
+#### VIDEO SHOWCASE: https://www.youtube.com/watch?v=-oafK0W6s24 (The gameplay is with all the debug flags on for demonstration)
+
+
 ## DISCLAIMER
 - The game has been tested on a Debian-based Linux distro.
 - The GUI was developed with assistance from AI.
