@@ -188,7 +188,7 @@ bool Game::check_judge_intervention(Player& attacker){
 			}
 
 			// Ask general if they want to intervene
-			if(dynamic_cast<Judge*>(judge)->undo((attacker))){
+			if(dynamic_cast<Judge*>(judge)->undo((attacker)) && judge_intervention){
 				return true;
 			}
 		}

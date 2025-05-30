@@ -81,20 +81,17 @@ using namespace coup;
 				
 				// Check with all the judges if they want to block bribe
 
-				if(current_game->check_judge_intervention(*this) || current_game->get_judge_intervention()){
+				if(current_game->get_judge_intervention()){
 					// Bribe was blocked by a Judge
 					// Coins already spent, loser
-					std::cout << "Judge blocked bribe, intervention flag: " << current_game->get_judge_intervention() << std::endl;
 					unblock_operation(Operation::EXTRA_TURN);
-					std::cout << "Before next_turn, current turn: " << current_game->turn() << std::endl;
 					this->current_game->next_turn(); // next round
-					std::cout << "After next_turn, current turn: " << current_game->turn() << std::endl;
 					return;
-				}else{
+				}
 					// Bribe succeeded - grant extra turn
 					std::cout << "DIDNT BLOCK " << current_game->turn() << std::endl;
 					block_operation_with_timer(Operation::EXTRA_TURN);
-				}
+				
 			}
 			else{
 				throw std::runtime_error("Bribe is disabled, got over or equal to 10 coins, illegal move");

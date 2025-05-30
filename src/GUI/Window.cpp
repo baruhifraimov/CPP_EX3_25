@@ -662,7 +662,7 @@ if (interventionState != InterventionState::NONE) {
                     } else if (pendingActionType == "bribe") {
                         // judge_intervention flag is false.
                         pendingAttacker->getGame().set_judge_intervention(false);
-                        pendingAttacker->bribe(); // Player::bribe should also check its flag
+						pendingAttacker->block_operation_with_timer(Operation::EXTRA_TURN);
                         setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
                     }
                 } catch (const std::exception& e) {
@@ -742,53 +742,49 @@ if (interventionState != InterventionState::NONE) {
 					}
 				}
 				else if (isButtonClicked(bribeButton, mp)) {
-					// reset flag
-					this->current_game->set_judge_intervention(false); // Initially assume no intervention
-
+					// Reset flag
+					this->current_game->set_judge_intervention(false);
+					
 					std::cout << "BRIBE action clicked!" << std::endl;
-					setErrorMessage(errorMessageText, "");  // Clear previous error
+					setErrorMessage(errorMessageText, "");
 					Player* attacker = current_game->get_current_player();
 					if (attacker) {
-						// Execute bribe immediately to deduct coins
 						try {
-
-							this->current_game->set_judge_intervention(false);
-							// Now check for Judge intervention
+							// Check if player has enough coins
+							if (attacker->coins() < 4) {
+								throw std::runtime_error("Not enough coins to execute Bribe");
+							}
+							
+							// Only deduct the coins, don't call full bribe() yet
+							attacker->addCoins(-4);
+							this->current_game->add_coins(4);
+							std::cout << "Bribe cost paid" << std::endl;
+							
+							// Check for eligible judges
 							auto judges = current_game->get_judges();
 							std::vector<Player*> eligibleJudges;
 							for (auto* j : judges) {
 								if (j != attacker) eligibleJudges.push_back(j);
 							}
-
-							// Set flag to true only if judges exist
-							if (!eligibleJudges.empty()) {
-								this->current_game->set_judge_intervention(true);
-							}
-
-							// This will deduct the 4 coins cost
-							attacker->bribe();
-							std::cout << "Bribe cost paid" << std::endl;
-
 							
-				
 							if (!eligibleJudges.empty()) {
-								// start Judge intervention
-								interventionState      = InterventionState::WAITING_JUDGE;
-								pendingInterventors    = std::move(eligibleJudges);
+								// Start judge intervention without actually calling bribe()
+								interventionState = InterventionState::WAITING_JUDGE;
+								pendingInterventors = std::move(eligibleJudges);
 								currentInterventorIndex = 0;
-								pendingAttacker        = attacker;
-								pendingActionType      = "bribe";
+								pendingAttacker = attacker;
+								pendingActionType = "bribe";
 								interventionPromptText.setString(
 									pendingInterventors[0]->getName() +
 									" (Judge), block " + attacker->getName() + "'s bribe?"
 								);
-								return;  // bail out now so we stay in intervention mode
+								return;  // Wait for judge decision
 							} else {
-								// no Judges → bribe already executed, just show success
+								// No judges to intervene, grant extra turn directly
+								attacker->block_operation_with_timer(Operation::EXTRA_TURN);
 								setErrorMessage(errorMessageText, "BRIBE SUCCESSFUL - EXTRA TURN");
 							}
 						} catch (const std::exception& e) {
-							std::cout << "Bribe failed: " << e.what() << std::endl;
 							setErrorMessage(errorMessageText, "ERROR: " + std::string(e.what()));
 						}
 					}

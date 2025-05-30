@@ -816,26 +816,25 @@ TEST_CASE_FIXTURE(CoupTestFixture, "Test 16.1: Judge sanction extra penalty") {
     CHECK(gov->coins() == govBefore - 4);
 }
 
-// TEST_CASE_FIXTURE(CoupTestFixture, "Test 16.2: Judge bribe intervention") {
-// 	Judge* judgePlayer = dynamic_cast<Judge*>(judge);
-//     REQUIRE(judgePlayer != nullptr);
+TEST_CASE_FIXTURE(CoupTestFixture, "Test 16.2: Judge bribe intervention") {
+	Judge* judgePlayer = dynamic_cast<Judge*>(judge);
+    REQUIRE(judgePlayer != nullptr);
     
-//     // Move to spy's turn and give coins for bribe
-//     game.next_turn();
+    // Move to spy's turn and give coins for bribe
+    game.next_turn();
 
-//     // Judge intervenes
-// 	judgePlayer->undo(*spy, true);
+    // Judge intervenes
+	judgePlayer->undo(*spy, true);
 
-//     // Verify the flag was set
-//     CHECK(game.get_judge_intervention() == true);
+    // Verify the flag was set
+    CHECK(game.get_judge_intervention() == true);
+	// After judge intervenes
+	spy->addCoins(4); // Add enough for another bribe
+	spy->bribe();
     
-// 	// After judge intervenes
-// 	spy->addCoins(4); // Add enough for another bribe
-// 	spy->bribe();
-    
-//     // Next player should be Baron
-//     CHECK(game.turn() == "Baron");
-// }
+    // Next player should be Baron
+    CHECK(game.turn() == "Baron");
+}
 
 // =============================================================================
 // TEST 17: COMPLEX INTERACTION SCENARIOS
