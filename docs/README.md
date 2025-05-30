@@ -43,7 +43,7 @@ The goal is to be the last player remaining by eliminating all other players thr
    - **Gather:** Gain 1 coin.
    - **Tax:** Gain 2 or 3 coins (depending on role).
    - **Bribe:** Spend 4 coins for an extra turn (can be blocked by Judges).
-   - **Arrest:** Target another player, costing coins and possibly removing them from play.
+   - **Arrest:** Target another player, gain one coin from him (Can't be arrested twice in a row + can't be arrested twice in a LAP [until his next turn]).
    - **Sanction:** Block another player's actions for a round (costs 3 coins).
    - **Coup:** Spend 7 coins to eliminate another player (mandatory at 10+ coins).
    - **Special Actions:**

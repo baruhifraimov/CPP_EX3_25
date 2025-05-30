@@ -11,7 +11,12 @@ namespace coup {
         MERCHANT
     };
 
-    // Convert Role enum to its string representation
+    /**
+     * @brief Convert Role enum to its string representation
+     * 
+     * @param r The role you want to convert into string
+     * @return std::string
+     */
     inline std::string to_string(Role r) {
         switch (r) {
             case Role::GOVERNOR: return "GOVERNOR";

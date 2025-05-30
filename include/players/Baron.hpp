@@ -16,7 +16,8 @@ class Baron : public Player {
 		}
 		/**
 		 * @brief Invest 3 coind to recieve 6 coins from treasury
-		 * 
+		 * @throw runtime_error when below three coins
+		 * @throw runtime_error when over 10 coins
 		 */
 		void invest();
 

@@ -107,15 +107,6 @@ using namespace coup;
 					throw std::runtime_error("Player arrest action is disabled, illegal move");
 				}
 
-				// if(this->num_coins < 2){
-				// 	throw std::runtime_error("Not enough coins to execute Arrest (need 2)");
-				// }
-				// else if(this->getRole() == Role::MERCHANT){
-				// 	if(this->num_coins < 3){
-				// 		throw std::runtime_error("Merchants need 3 coins to execute Arrest");
-				// 	}
-				// }
-
 				// Check if this player was the last arrested player
 				if (current_game->getLastArrestedPlayer() == &o) {
 					throw std::runtime_error("Cannot arrest the same player twice in succession");
@@ -205,15 +196,13 @@ using namespace coup;
 		 void Player::coup(Player& o) {
             this->isMyTurn(); // Check if its my turn
 
-			//NOTED BECAUSE WE USE THE GUI TO PAY THROUGH THE PLAYER
-
+			// --- NOTED BECAUSE WE USE THE GUI TO PAY THROUGH THE PLAYER, SECOND FUNCTION IS PAY-COUP ---
+			// --- SHOW CASING THE NOTE FOR REFERENCE ---
             // if(this->coins()<7){
             //     throw std::runtime_error("Not enough coins to execute Coup");
             // }
             // this->addCoins(-7); // Always deduct coins for attempting coup
             // current_game->add_coins(7); // Coins go to treasury or are just removed
-
-			// Check if im couping my self
 
             // Check if a general intervention has ALREADY been flagged as successful
             if(current_game->get_general_intervention()){

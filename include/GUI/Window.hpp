@@ -10,6 +10,21 @@
 using namespace coup;
 class Window {
 private:
+
+    // Player selection for targeted actions
+    enum class ActionState { 
+        CHOOSING_ACTION,     // Normal state - choosing what action to do
+        SELECTING_TARGET     // Waiting for player to click on a target player
+    };
+
+    // Intervention system
+    enum class InterventionState {
+        NONE,              // No intervention needed
+        WAITING_GENERAL,   // Waiting for General to decide on coup intervention
+        WAITING_JUDGE      // Waiting for Judge to decide on bribe intervention
+    };
+
+    // The screens of the game GUI
     enum class Screen { Menu, 
                         AskCount, 
                         AskNames,
@@ -18,6 +33,12 @@ private:
                         };
 
     Screen screen = Screen::Menu;
+
+    // factory + Game
+    int num_of_players; // Number 
+    int index_nop; // index of num of player
+    Game* current_game; // Game instance for the game
+    PlayerFactory PF;
 
     static int roleIndex; // Used for DEBUG_ROLE to assign roles 0-5 in order
 
@@ -83,13 +104,6 @@ private:
     std::string commandInput;
     sf::Text commandText;
     
-
-    // Intervention system
-    enum class InterventionState {
-        NONE,              // No intervention needed
-        WAITING_GENERAL,   // Waiting for General to decide on coup intervention
-        WAITING_JUDGE      // Waiting for Judge to decide on bribe intervention
-    };
     InterventionState interventionState = InterventionState::NONE;
     std::vector<Player*> pendingInterventors;  // List of generals/judges who can intervene
     size_t currentInterventorIndex = 0;        // Which general/judge we're asking
@@ -102,13 +116,6 @@ private:
     sf::Text interventionPromptText;
     sf::RectangleShape yesButton, noButton;
     sf::Text yesButtonText, noButtonText;
-    
-
-    // Player selection for targeted actions
-    enum class ActionState { 
-        CHOOSING_ACTION,     // Normal state - choosing what action to do
-        SELECTING_TARGET     // Waiting for player to click on a target player
-    };
 
     ActionState actionState = ActionState::CHOOSING_ACTION;
     std::string pendingAction = "";  // Store which action we're waiting to execute ("sanction", "coup", etc.)
@@ -121,12 +128,6 @@ private:
      * modifying the text's position directly.
      */
     void centerTextInButton(sf::Text& text, const sf::RectangleShape& button);
-
-    // factory + Game
-    int num_of_players; // Number 
-    int index_nop; // index of num of player
-    Game* current_game; // Game instance for the game
-    PlayerFactory PF;
 
     /**
      * @brief responsible for setting up or initializing 

@@ -125,6 +125,7 @@ class Player{
 			* COST: 0
 			* can be disabled by: sanction
 			@throws runtime_error: illegal move when blocked
+			@throws runtime_error: when coins is over or equal to 10
 		*/
 		virtual void gather();
 
@@ -132,7 +133,7 @@ class Player{
 			* COST: 0
 			* can be disabled by: certain roles/operations
 			@throws runtime_error: illegal move when blocked
-
+			@throws runtime_error: when coins is over or equal to 10
 		*/		
 		virtual void tax();
 
@@ -140,12 +141,16 @@ class Player{
 			* COST: 4
 			* can be disabled by: NA
 			@throws runtime_error: illegal move when blocked
+			@throws runtime_error: when coins is over or equal to 10
 		*/		
 		virtual void bribe();
 
 		/** @brief Player selects a player (not himself) and takes from him 1 coin
 		 	* @note: cannot be used twice on the same player in a row
 			* COST: 0
+			* @throw runtime_error: when coins is over or equal to 10
+			* @throw runtime_error: When arrest is disabled and you still execute the command
+			* @throw runtime_error: when trying to arrest a player twice in a row 
 			* can be disabled by: NA
 		*/		
 		virtual void arrest(Player& o);
@@ -153,7 +158,9 @@ class Player{
 		/** @brief Player selects a player (not himself) and disables his (gather,tax) actions until this player next turn
 			* COST: 3
 			* can be disabled by: by SPY only
-			@throws runtime_error: If player picked himself to sanction
+			* @throw runtime_error: If player picked himself to sanction
+			* @throw runtime_error: Num of coins below 3
+			* @throw runtime_error: when coins is over or equal to 10
 		*/		
 		virtual void sanction(Player& o);
 
@@ -171,14 +178,6 @@ class Player{
 		 */
 		virtual int coins() const;
 
-		// /**
-		//  * @brief Undo last Player action
-		//  * @note: Only Judge and Governor
-		//  * COST: 0
-		//  * @param o The other player we want to undo the action
-		//  */
-		// virtual void undo(Player& o);
-
 		/**
 		 * @brief Operator << prints the player name to STDOUT
 		 * 
@@ -195,6 +194,7 @@ class Player{
 		 * 
 		 * @return true Is playin
 		 * @return false Got removed from game
+		 * @throw runtime_error when player is not active
 		 */
 		virtual bool validate_active();
 
@@ -210,7 +210,7 @@ class Player{
 		/**
 		 * @brief Checks if the players turn
 		 * 
-		 * @throws runtime_error: Illegal move, tried to activate an illegal operation when not in player turn
+		 * @throw runtime_error: Illegal move, tried to activate an illegal operation when not in player turn
 		 */
 		virtual void isMyTurn();
 
@@ -246,6 +246,7 @@ class Player{
 		 * @brief Sets a timer for a blocked operation to understand when to unblock it in the next round
 		 * Initializes timer with 1 for each new block
 		 * @param op The operation that we activated the block
+		 * @throw runetime_error if a player got arrested once in a lap, cannot arrest him again until he begins a new round
 		 */
 		void block_operation_with_timer(Operation op);
 
@@ -257,6 +258,8 @@ class Player{
 		 * THIS ADDED ONLY FOR THE WINDOW.HPP GUI, THE GUI GIVES PROBLEMS WHEN TRYING TO PAY COUP
 		 * 
 		 * @param target The target that we want to
+		 * @throw runtime_error not enough coins to pay coup (needed 7)
+		 * @throw runtime_error when trying to coup yourself
          */
         void pay_coup_cost(Player& target);
 

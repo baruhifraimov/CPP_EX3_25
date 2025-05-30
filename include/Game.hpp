@@ -249,10 +249,18 @@ class Game {
 		 */
 		void set_judge_intervention(bool value);
 
-		// Get the last arrested player
+		/**
+		 * @brief Get the Last Arrested Player object
+		 * 
+		 * @return Player* 
+		 */
 		Player* getLastArrestedPlayer() const;
 
-		// Set the last arrested player
+		/**
+		 * @brief Set the Last Arrested Player object
+		 * 
+		 * @param player 
+		 */
 		void setLastArrestedPlayer(Player* player);
 };
 }
