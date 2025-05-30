@@ -140,7 +140,7 @@ using namespace coup;
 					this->addCoins(1);
 					// Giving back to the general the money that been taken from him
 					o.addCoins(1);
-					this->addCoins(-1);
+					current_game->add_coins(-1);
 				}
 				else{
 					o.addCoins(-1);
