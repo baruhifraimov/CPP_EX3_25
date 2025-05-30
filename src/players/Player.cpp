@@ -167,21 +167,27 @@ using namespace coup;
 				}
 				o.block_operation_with_timer(Operation::GATHER);
 				o.block_operation_with_timer(Operation::TAX);
-				this->addCoins(-3);
-				this->current_game->add_coins(3);
 
 				// Check if Baron, if yes use his special ability
 				// If casted on Baron, give him one additional coin fr0m bank
 				if(o.getRole() == Role::BARON){
+					this->addCoins(-3);
+					this->current_game->add_coins(3);	
 					o.addCoins(1);
 					current_game->add_coins(-1);
+					
 				}
 				// Check if Judge, if yes use his special ability
 				// If casted on Judge, pay extra coin to treasury 
-				if(o.getRole() == Role::JUDGE){
-					this->addCoins(-1);
-					this->current_game->add_coins(+1);
+				else if(o.getRole() == Role::JUDGE){
+					this->addCoins(-4);
+					this->current_game->add_coins(4);
 				}
+				else{
+					this->addCoins(-3);
+					this->current_game->add_coins(3);	
+				}
+
 				if (is_operation_blocked(Operation::EXTRA_TURN))
 				{
 					unblock_operation(Operation::EXTRA_TURN);
@@ -189,6 +195,7 @@ using namespace coup;
 				else{
 					this->current_game->next_turn(); // next round
 				}
+				
 			}
 			else{
 				throw std::runtime_error("Sanction is disabled, got over or equal to 10 coins, illegal move");

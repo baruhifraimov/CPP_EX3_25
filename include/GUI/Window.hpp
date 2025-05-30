@@ -19,6 +19,8 @@ private:
 
     Screen screen = Screen::Menu;
 
+    static int roleIndex; // Used for DEBUG_ROLE to assign roles 0-5 in order
+
     sf::RenderWindow window;
     sf::Font font;
     

@@ -19,7 +19,13 @@
 #include <random>
 
 const sf::Color CREAM_TEXT(0xF5, 0xF1, 0xD0); // #F5F1D0 - Soft ivory/cream color
-bool DEBUG = false; // enable skip button
+
+// DEBUG MENU
+bool DEBUG_ROLE = true; // enable all roles, no random
+	int Window::roleIndex = 0;
+bool DEBUG_SKIP = true; // enable skip button at play screen
+bool DEBUG_SHOWCOINS = true; // show all opponents coins
+
 using namespace coup;
 
 Window::Window(Game& current_game) : window(sf::VideoMode(768,672), "COUP Game"),current_game(&current_game) {
@@ -561,11 +567,17 @@ void Window::handleEvents() {
 			// 2) ENTER to register one name
 			if (ev.type==sf::Event::KeyPressed && ev.key.code==sf::Keyboard::Enter) {
 				if (!nameInput.empty()) {
-					static std::random_device rd;
-					static std::mt19937 gen(rd());
-					// DEBUG
-					static std::uniform_int_distribution<int> dis(0, 5);  // 0 to 5 inclusive
-					Role role = static_cast<Role>(dis(gen));
+					Role role;
+					if(DEBUG_ROLE){
+						role = static_cast<Role>(roleIndex++);
+					}
+					else{
+						static std::random_device rd;
+						static std::mt19937 gen(rd());
+						static std::uniform_int_distribution<int> dis(0, 5);  // 0 to 5 inclusive
+						role = static_cast<Role>(dis(gen));
+					}
+					
 					std::cout<< to_string(role);
 				  try {
 					PF.create_player(*current_game, nameInput, role);
@@ -705,7 +717,7 @@ if (interventionState != InterventionState::NONE) {
 				auto mp = sf::Vector2f(ev.mouseButton.x, ev.mouseButton.y);
 
 		// Check for Skip button click - add this with the other action buttons
-		if(DEBUG){
+		if(DEBUG_SKIP){
 		if (isButtonClicked(skipButton, mp)) {
 			std::cout << "SKIP action clicked!" << std::endl;
 			setErrorMessage(errorMessageText, "");  // Clear previous error
@@ -1152,7 +1164,7 @@ void Window::render() {
 			playerInfo.setFont(font);
 			playerInfo.setCharacterSize(20);
 			std::string playerText;
-			if(DEBUG){
+			if(DEBUG_SHOWCOINS){
 			// ALWAYS include coin count	
 			playerText = players[i]->getName() + " " + to_string(players[i]->getRole()) + " (" + std::to_string(players[i]->coins()) + " coins)";
 			}
@@ -1188,7 +1200,7 @@ void Window::render() {
 		// Only draw action buttons if NOT in intervention state
 		if (interventionState == InterventionState::NONE) {
 
-			if(DEBUG){
+			if(DEBUG_SKIP){
 			// Draw Skip button in the bottom right corner
             if (skipButton.getGlobalBounds().contains(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y)) {
                 skipButton.setFillColor(sf::Color(80, 80, 80)); // Darker gray when hovering
@@ -1380,7 +1392,8 @@ void Window::resetGame() {
     currentInterventorIndex = 0;
     pendingAttacker = nullptr;
     pendingTarget = nullptr;
-    
+    roleIndex = 0;
+
     // Reset text displays
     setErrorMessage(errorMessageText, "");
     setActionPrompt("CHOOSE ACTION");

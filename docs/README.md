@@ -24,7 +24,10 @@ Each role has unique abilities and may have special actions.
 The goal is to be the last player remaining by eliminating all other players through actions and strategic play.
 
 ## How to Play
-** DEBUG ** you can enable DEBUG by going to the windows.cpp and turn the DEBUG flag to TRUE. it will enable SKIP button for skipping turns and reveal coins for all players in the Play screen.
+** DEBUG ** you can enable DEBUG by going to the windows.cpp and turn the DEBUG flags to TRUE:
+  - DEBUG_ROLE enable all roles, no random picking
+  - DEBUG_SKIP enable skip button at play screen
+  - DEBUG_SHOWCOINS show all opponents coins
 
 1. **Start the Game:**
    - Run the executable. The GUI will prompt for the number of players (2-6).
