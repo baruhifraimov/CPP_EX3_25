@@ -21,10 +21,10 @@
 const sf::Color CREAM_TEXT(0xF5, 0xF1, 0xD0); // #F5F1D0 - Soft ivory/cream color
 
 // DEBUG MENU
-bool DEBUG_ROLE = true; // enable all roles, no random
+bool DEBUG_ROLE = false; // enable all roles, no random
 	int Window::roleIndex = 0;
-bool DEBUG_SKIP = true; // enable skip button at play screen
-bool DEBUG_SHOWCOINS = true; // show all opponents coins
+bool DEBUG_SKIP = false; // enable skip button at play screen
+bool DEBUG_SHOWCOINS = false; // show all opponents coins
 
 using namespace coup;
 
