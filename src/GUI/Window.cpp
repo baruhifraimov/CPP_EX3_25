@@ -28,7 +28,7 @@ bool DEBUG_SHOWCOINS = false; // show all opponents coins
 
 using namespace coup;
 
-Window::Window(Game& current_game) : window(sf::VideoMode(768,672), "COUP Game"),current_game(&current_game) {
+Window::Window(Game& current_game) :current_game(&current_game),  window(sf::VideoMode(768,672), "COUP Game") {
 	
     if (!font.loadFromFile("./src/GUI/fonts/PressStart2P-Regular.ttf")) {
         std::cerr << "Error: Could not load PressStart2P-Regular.ttf font!" << std::endl;

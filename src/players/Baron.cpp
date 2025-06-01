@@ -10,6 +10,7 @@ using namespace coup;
 				if(this->coins() < 3){
 					throw std::runtime_error("Invest action is illegal, below 3 coins");
 				}
+				std::cout << "Activating INVEST"<< std::endl;
 				this->addCoins(-3);
 				this->addCoins(6);
 				if (is_operation_blocked(Operation::EXTRA_TURN))

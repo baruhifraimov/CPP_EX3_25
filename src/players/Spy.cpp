@@ -7,7 +7,11 @@ using namespace coup;
 
 		 void Spy::view_coins(Player &p){
 			this->isMyTurn(); // Check if its my turn
-			std::cout << "Player: " + p.player_name + "has " 
+			if(!p.getActive()){
+				throw std::runtime_error("Player '"+ p.getName() +"' is not active");
+			}
+			std::cout << "Activating VIEW COINS"<< std::endl;
+			std::cout << "Player: '" + p.player_name + "' has " 
 					  << p.num_coins << " coins" << std::endl;
 		}
 
@@ -18,6 +22,7 @@ using namespace coup;
 				if(&(*this) == &o){ // check if im trying to sanction my self
 					throw std::runtime_error("Cannot Disable Arrest yourself, illegal move");
 				}
+				std::cout << "Activating DISABLE ARREST"<< std::endl;
 				o.block_operation_with_timer(Operation::DISABLE_ARREST);
 			}
 			else{

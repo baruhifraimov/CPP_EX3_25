@@ -9,7 +9,8 @@ using namespace coup;
 bool Judge::undo(Player& o, bool shouldBlock) {
     std::cout << this->getName() << " (Judge), blocking " 
               << o.getName() << "'s bribe action: " << (shouldBlock ? "YES" : "NO") << std::endl;
-    
+              std::cout << "Activating JUDGE UNDO"<< std::endl;
+
     if (shouldBlock) {
             this->getGame().set_judge_intervention(true);
             

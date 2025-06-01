@@ -2,7 +2,6 @@
 # Basic Setup
 CXX = clang++
 CXXFLAGS = -Wall -std=c++17 -ggdb -I$(INC) -I$(PLYR)
-LDFLAGS = 
 SFML_FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
 # Regular folders
@@ -30,17 +29,20 @@ TST_HDRS = $(INC)doctest.h $(INC)Game.hpp $(PLYR)Player.hpp $(PLYR)Governor.hpp 
 $(shell mkdir -p $(OBJ))
 
 # Default target
-all: GUI SFML TestRunner mMain
+all: GUI TestRunner demo
 
 # Build and run the GUI with make Main 
-Main: GUI SFML
+Main: GUI demo
+	./demo
 	./GUI
 
-# mMain targets
-mMain: $(MAIN_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
+# # mMain targets
+# mMain: $(MAIN_OBJS)
+# 	$(CXX) $(CXXFLAGS) $( ) $^ -o $@
 
-
+# Compile demo executable
+demo: $(MAIN_OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(MAIN_OBJS)
 
 # Pattern rules for cleaner compilation
 $(OBJ)%.o: $(SRC)%.cpp
@@ -54,10 +56,7 @@ $(OBJ)%.o: $(PLYR_SRC)%.cpp
 #========================================================================#
 
 GUI: $(SFML_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SFML_FLAGS) $^ -o GUI
-
-SFML: $(SFML_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SFML_FLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $( ) $(SFML_FLAGS) $^ -o $@
 
 # Pattern rule for GUI sources
 $(OBJ)%.o: $(GUI)%.cpp
@@ -86,22 +85,23 @@ test: TestRunner
 
 # Test executable
 TestRunner: $(TST_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $( ) $^ -o $@
 
-
-
-
-
+#========================================================================#
+#   		                 VALGRIND 	 RULE                            #
+#========================================================================#
 
 # Valgrind target
-valgrind: GUI Main
+valgrind: GUI demo TestRunner
 	@echo "Make sure to run 'ulimit -n 1024' before running valgrind"
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./GUI
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./TestRunner
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./demo
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./GUI
+
 
 
 # Clean target
 clean:
-	rm -rf Main GUI SFML $(OBJ)*.o coup_game TestRunner mMain ./obj
+	rm -rf Main GUI SFML $(OBJ)*.o coup_game TestRunner mMain ./obj demo
 
 .PHONY: all Main GUI SFML test run run-gui run-sfml valgrind clean debug check-player mMain

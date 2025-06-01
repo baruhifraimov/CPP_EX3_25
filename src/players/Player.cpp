@@ -21,12 +21,12 @@ using namespace coup;
 		}
 
 		 void Player::gather() {
-			std::cout << "Activating gather";
 			this->isMyTurn(); // Check if its my turn
 			if(!IsOver10Coins()){
 				if(is_operation_blocked(Operation::GATHER)){
 					throw std::runtime_error("Player Gather is blocked, illegal move");
 				}
+				std::cout << "Activating GATHER"<< std::endl;
 				this->current_game->add_coins(-1);
 				this->addCoins(1);
 				if (is_operation_blocked(Operation::EXTRA_TURN))
@@ -48,6 +48,7 @@ using namespace coup;
 				if(is_operation_blocked(Operation::TAX)){
 					throw std::runtime_error("Player Tax is blocked, illegal move");
 				}
+				std::cout << "Activating TAX"<< std::endl;
 				if(this->player_role == Role::GOVERNOR){
 					this->current_game->add_coins(-3);
 					this->addCoins(3);
@@ -79,7 +80,8 @@ using namespace coup;
 				this->addCoins(-4);
 				this->current_game->add_coins(4);
 
-				
+				std::cout << "Activating BRIBE"<< std::endl;
+
 				// Check with all the judges if they want to block bribe
 
 				if(current_game->get_judge_intervention()){
@@ -111,7 +113,7 @@ using namespace coup;
 				if (current_game->getLastArrestedPlayer() == &o) {
 					throw std::runtime_error("Cannot arrest the same player twice in succession");
 				}
-
+				std::cout << "Activating ARREST"<< std::endl;
 				 // Set this player as the last arrested player
 				 current_game->setLastArrestedPlayer(&o);
 
@@ -156,6 +158,7 @@ using namespace coup;
 				if(&(*this) == &o){ // check if im trying to sanction my self
 					throw std::runtime_error("Cannot sanction yourself, illegal move");
 				}
+				std::cout << "Activating SANCTION"<< std::endl;
 				o.block_operation_with_timer(Operation::GATHER);
 				o.block_operation_with_timer(Operation::TAX);
 
@@ -203,6 +206,7 @@ using namespace coup;
             // }
             // this->addCoins(-7); // Always deduct coins for attempting coup
             // current_game->add_coins(7); // Coins go to treasury or are just removed
+			std::cout << "Activating COUP"<< std::endl;
 
             // Check if a general intervention has ALREADY been flagged as successful
             if(current_game->get_general_intervention()){

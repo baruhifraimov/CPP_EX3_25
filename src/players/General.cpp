@@ -24,6 +24,6 @@ bool General::undo(Player& attacker, Player& target, bool shouldBlock) {
             return true;
         
     }
-    
+    this->getGame().set_general_intervention(false);
     return false;
 }

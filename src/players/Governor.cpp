@@ -13,7 +13,8 @@ using namespace coup;
 		if (&o == this) {
 			throw std::runtime_error("Cannot block your own tax, illegal move");
 		}
-		
+		std::cout << "Activating BLOCK TAX"<< std::endl;
+
 		// Block the target's TAX operation using the existing mechanism
 		o.block_operation_with_timer(Operation::TAX);
 		
